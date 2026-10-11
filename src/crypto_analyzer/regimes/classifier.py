@@ -22,11 +22,8 @@ Default parameters (RESEARCH.md §8):
 
 from __future__ import annotations
 
-from typing import Optional, Tuple
-
 import numpy as np
 import pandas as pd
-
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -173,11 +170,11 @@ def classify_regime(
 def compute_rolling_regimes(
     close: pd.Series,
     window: int = REGIME_WINDOW,
-    theta_slope: Optional[float] = None,
-    theta_vol_high: Optional[float] = None,
+    theta_slope: float | None = None,
+    theta_vol_high: float | None = None,
     vol_percentile: float = 90.0,
     slope_percentile: float = 50.0,
-    train_end_idx: Optional[int] = None,
+    train_end_idx: int | None = None,
 ) -> pd.DataFrame:
     """
     Compute rolling market regimes for each candle in the Close series.

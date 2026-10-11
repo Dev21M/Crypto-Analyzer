@@ -4,7 +4,7 @@ Comprehensive data validator module enforcing all Phase 2 data quality & integri
 
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -18,16 +18,16 @@ class DataValidator:
     on raw historical 5-minute candle DataFrames.
     """
 
-    EXPECTED_COLUMNS = ["timestamp", "open", "high", "low", "close", "volume"]
-    INTERVAL_MS = 300_000  # 5 minutes in milliseconds
+    INTERVAL_MS: int = 300_000  # 5 minutes in milliseconds
 
     def __init__(self, tolerance_ms: int = 0):
         self.tolerance_ms = tolerance_ms
+        self.EXPECTED_COLUMNS = ["timestamp", "open", "high", "low", "close", "volume"]
 
     def validate(
         self,
         df: pd.DataFrame,
-        filepath: Optional[Path] = None,
+        filepath: Path | None = None,
         expected_symbol: str = "BTCUSDT",
     ) -> ValidationReport:
         """
@@ -35,8 +35,8 @@ class DataValidator:
         Returns a detailed ValidationReport.
         """
         report = ValidationReport()
-        checks: Dict[str, bool] = {}
-        errors: List[str] = []
+        checks: dict[str, bool] = {}
+        errors: list[str] = []
 
         # Check 1: Schema & Type Validation
         schema_ok = True
@@ -89,7 +89,7 @@ class DataValidator:
             errors.append(f"Timestamp Error: Found {dup_count} duplicate timestamps")
 
         # Check 5: Expected 5-Minute Intervals & Missing Candle Gap Identification
-        gaps: List[Dict[str, Any]] = []
+        gaps: list[dict[str, Any]] = []
         missing_total = 0
         interval_ok = True
 
@@ -188,9 +188,9 @@ class DataValidator:
                 try:
                     hash_val = calculate_sha256(filepath)
                     sha256_ok = bool(len(hash_val) == 64)
-                except Exception as e:
+                except (OSError, ValueError, TypeError) as e:
                     sha256_ok = False
-                    errors.append(f"SHA-256 Checksum Error: {str(e)}")
+                    errors.append(f"SHA-256 Checksum Error: {e!s}")
             else:
                 sha256_ok = False
                 errors.append(f"File Error: Specified filepath does not exist: {filepath}")

@@ -60,10 +60,40 @@
 - [x] Record Decision 018 in `DECISIONS.md`
 - [x] Mark Phase 5 COMPLETE and STOP for Human Approval for Phase 6
 
+## COMPLETED (Phase 10 — Crypto Analyzer Application)
+- [x] Create Streamlit dashboard `src/crypto_analyzer/app.py` with 5 interactive pages
+- [x] Page 1: Data Explorer — Interactive candlestick charts with indicator overlays, date range selection
+- [x] Page 2: Model Performance — Metric comparison tables, bar charts, radar charts across 4 experiments × 7 models
+- [x] Page 3: Regime Analysis — Market regime distribution, performance by regime, detailed regime tables
+- [x] Page 4: Statistical Tests — Wilcoxon signed-rank test results with Holm correction display
+- [x] Page 5: Reports — Markdown tables, generated figures, summary files viewer
+- [x] Mandatory scientific disclaimer banner on all pages (not financial advice warning)
+- [x] Create CLI runner script `scripts/run_app.py`
+- [x] Add streamlit and plotly to requirements.txt
+- [x] Implement unit test suite `tests/test_app.py` (13/13 passed)
+- [x] Mark Phase 10 COMPLETE and STOP for Human Approval for Phase 11
+
+## COMPLETED (Phase 11 — Final Validation)
+- [x] Run complete end-to-end unit test suite (195 tests passing)
+- [x] Perform clean-environment installation and execution check (`scripts/clean_env_check.py`)
+- [x] Audit code against PEP 8 and docstring standards (ruff: 0 errors)
+- [x] Apply automatic code fixes (import sorting, type hints, mutable defaults, unused variables)
+- [x] Verify no data leakage: chronological splits, train-only scaling, no future data in features
+- [x] Create missing directories for completeness (evaluation, visualization, utils, experiments/configs)
+- [x] Mark Phase 11 COMPLETE and STOP for Human Approval for Phase 12
+
+## COMPLETED (Phase 12 — Research Deliverables)
+- [x] Write final research paper `reports/research/final_paper.md`
+- [x] Document all 12 phases, experimental results, statistical significance, regime analysis
+- [x] Report hypothesis outcomes: H1 (Rejected), H2 (Rejected), H3 (Inconclusive), H4 (Supported)
+- [x] Document key findings: Naive ≈ XGBoost on DA, 1D-CNN best MAE, no feature benefit, metric divergence
+- [x] Document limitations: single asset, 30-day window, 100% High Vol test regime, frictionless assumption
+- [x] Provide future research directions: multi-asset, order book features, alternative horizons, walk-forward
+- [x] Include full reproducibility statement with execution commands
+- [x] Mark Phase 12 COMPLETE
+
 ## BACKLOG
-- [ ] Phase 10: Build interactive Streamlit analyzer app
-- [ ] Phase 11: Execute complete repository audit & clean environment test
-- [ ] Phase 12: Write research paper deliverables
+- None (all planned phases complete)
 
 ## BLOCKED
 - None at present.
@@ -79,3 +109,6 @@
 - [x] Phase 7 feature ablation study (2026-09-18)
 - [x] Phase 8 market regime analysis (2026-09-18)
 - [x] Phase 9 statistical analysis & comparative reports (2026-09-19)
+- [x] Phase 10 Streamlit dashboard — 5 pages, interactive charts, regime analysis, statistical tests (2026-10-08)
+- [x] Phase 11 Final validation — 195 tests passing, ruff clean, clean-env verified, no leakage (2026-10-08)
+- [x] Phase 12 Research deliverables — Final paper, hypothesis outcomes, limitations, reproducibility (2026-10-08)
