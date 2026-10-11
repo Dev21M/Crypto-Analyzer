@@ -32,6 +32,10 @@ export function formatNumber(value, options = {}) {
 }
 
 export function formatCompactNumber(value, options = {}) {
+  if (value === null || value === undefined || isNaN(value)) {
+    return '—';
+  }
+
   const {
     precision = 1,
     currency = false,

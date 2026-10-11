@@ -58,14 +58,11 @@ class BinanceRestClient:
     
     BASE_URL = "https://api.binance.com/api/v3"
     
-    def __init__(self, timeout: int = 10, verify_ssl: bool = False):
+    def __init__(self, timeout: int = 10, verify_ssl: bool = True):
         self.timeout = timeout
         self.verify_ssl = verify_ssl
         self.session = requests.Session()
-        # SSL verification configuration
-        # Note: On Windows with corporate proxies/antivirus doing SSL inspection,
-        # certificate verification may fail. For local development, verify_ssl=False
-        # is used as a workaround. In production, ensure proper CA certificates are installed.
+        
         if verify_ssl:
             import ssl
             # Create a custom adapter that uses system SSL context

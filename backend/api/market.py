@@ -3,8 +3,10 @@ Market data and regime API endpoints.
 """
 from datetime import datetime, timedelta
 from typing import Optional, List
+import time
 import pandas as pd
 import logging
+import aiohttp
 from fastapi import APIRouter, Depends, HTTPException, Query
 from backend.schemas.models import (
     MarketSnapshot,
@@ -49,6 +51,48 @@ async def get_live_service():
 
 # ==================== NEW MARKET ENDPOINTS FOR FRONTEND ====================
 
+# Fear & Greed cache
+_fear_greed_cache = {"data": None, "timestamp": 0}
+FEAR_GREED_CACHE_TTL = 300  # 5 minutes
+
+
+async def fetch_fear_greed_index():
+    """Fetch Fear & Greed Index from Alternative.me API."""
+    global _fear_greed_cache
+    now = time.time()
+    
+    # Return cached data if still valid
+    if _fear_greed_cache["data"] and (now - _fear_greed_cache["timestamp"]) < FEAR_GREED_CACHE_TTL:
+        return _fear_greed_cache["data"]
+    
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(
+                "https://api.alternative.me/fng/",
+                timeout=aiohttp.ClientTimeout(total=10)
+            ) as response:
+                if response.status == 200:
+                    data = await response.json()
+                    if data.get("data") and len(data["data"]) > 0:
+                        latest = data["data"][0]
+                        result = {
+                            "value": int(latest.get("value", 0)),
+                            "value_classification": latest.get("value_classification", "Unknown"),
+                            "timestamp": latest.get("timestamp", ""),
+                            "time_until_update": latest.get("time_until_update", ""),
+                        }
+                        _fear_greed_cache = {"data": result, "timestamp": now}
+                        return result
+    except Exception as e:
+        logger.warning(f"Failed to fetch Fear & Greed Index: {e}")
+    
+    # Return cached data even if expired, or default
+    if _fear_greed_cache["data"]:
+        return _fear_greed_cache["data"]
+    
+    return {"value": 0, "value_classification": "Unknown", "timestamp": "", "time_until_update": ""}
+
+
 @router.get("/overview")
 async def get_market_overview():
     """
@@ -62,7 +106,7 @@ async def get_market_overview():
         
         if btc_price:
             # Get 24h ticker for BTC from Binance (has change, volume, etc.)
-            binance_client = BinanceRestClient(verify_ssl=False)
+            binance_client = BinanceRestClient()
             btc_ticker = binance_client.get_24h_ticker("BTCUSDT")
             eth_ticker = binance_client.get_24h_ticker("ETHUSDT")
             
@@ -74,6 +118,9 @@ async def get_market_overview():
             total_volume = float(btc_ticker.get("volume", 0)) * btc_price + (float(eth_ticker.get("volume", 0)) * float(eth_ticker.get("lastPrice", 0)) if eth_ticker else 0)
             
             btc_dominance = (btc_market_cap / total_market_cap * 100) if total_market_cap > 0 else 0
+            
+            # Fetch Fear & Greed Index
+            fear_greed = await fetch_fear_greed_index()
             
             return {
                 "btc": {
@@ -92,8 +139,8 @@ async def get_market_overview():
                 "totalVolume": total_volume,
                 "marketCapChange24h": 0,  # Would need historical data
                 "btcDominance": btc_dominance,
-                "fearGreedIndex": "—",  # Not available without external API
-                "fearGreedLabel": "N/A",
+                "fearGreedIndex": str(fear_greed.get("value", "—")),
+                "fearGreedLabel": fear_greed.get("value_classification", "N/A"),
                 "timestamp": datetime.utcnow().isoformat(),
                 "source": "Binance/FCS API (live)",
                 "isLive": True,
@@ -112,6 +159,9 @@ async def get_market_overview():
         # Get regime
         regime_info = regime_service.get_current_regime()
         
+        # Fetch Fear & Greed Index
+        fear_greed = await fetch_fear_greed_index()
+        
         return {
             "btc": {
                 "price": candle.close,
@@ -129,8 +179,8 @@ async def get_market_overview():
             "totalVolume": 0,
             "marketCapChange24h": 0,
             "btcDominance": 0,
-            "fearGreedIndex": "—",
-            "fearGreedLabel": "N/A",
+            "fearGreedIndex": str(fear_greed.get("value", "—")),
+            "fearGreedLabel": fear_greed.get("value_classification", "N/A"),
             "timestamp": datetime.utcnow().isoformat(),
             "source": "Static historical data",
             "isLive": False,
@@ -143,7 +193,7 @@ async def get_market_overview():
 async def get_top_gainers(limit: int = Query(default=10, ge=1, le=50)):
     """Get top gaining cryptocurrencies in 24h."""
     try:
-        binance_client = BinanceRestClient(verify_ssl=False)
+        binance_client = BinanceRestClient()
         tickers = binance_client.get_all_24h_tickers()
         
         if tickers:
@@ -178,7 +228,7 @@ async def get_top_gainers(limit: int = Query(default=10, ge=1, le=50)):
 async def get_top_losers(limit: int = Query(default=10, ge=1, le=50)):
     """Get top losing cryptocurrencies in 24h."""
     try:
-        binance_client = BinanceRestClient(verify_ssl=False)
+        binance_client = BinanceRestClient()
         tickers = binance_client.get_all_24h_tickers()
         
         if tickers:
@@ -210,7 +260,7 @@ async def get_top_losers(limit: int = Query(default=10, ge=1, le=50)):
 async def search_coins(q: str = Query(..., min_length=1)):
     """Search for coins by symbol or name."""
     try:
-        binance_client = BinanceRestClient(verify_ssl=False)
+        binance_client = BinanceRestClient()
         # Use exchange info to get all symbols
         exchange_info = binance_client.get_exchange_info()
         
@@ -240,7 +290,7 @@ async def search_coins(q: str = Query(..., min_length=1)):
 async def get_supported_coins():
     """Get list of supported trading pairs (USDT pairs from Binance)."""
     try:
-        binance_client = BinanceRestClient(verify_ssl=False)
+        binance_client = BinanceRestClient()
         exchange_info = binance_client.get_exchange_info()
         
         if exchange_info and "symbols" in exchange_info:
@@ -261,20 +311,23 @@ async def get_supported_coins():
     return []
 
 
+
 @router.get("/coins/{symbol}")
 async def get_coin_details(symbol: str):
     """Get detailed information for a specific coin."""
     try:
-        binance_client = BinanceRestClient(verify_ssl=False)
+        binance_client = BinanceRestClient()
         ticker = binance_client.get_24h_ticker(f"{symbol.upper()}USDT")
         
         if ticker:
+            price = float(ticker.get("lastPrice", 0))
+            
             return {
                 "symbol": symbol.upper(),
                 "name": symbol.upper(),
-                "price": float(ticker.get("lastPrice", 0)),
+                "price": price,
                 "change24h": float(ticker.get("priceChangePercent", 0)),
-                "volume24h": float(ticker.get("volume", 0)) * float(ticker.get("lastPrice", 0)),
+                "volume24h": float(ticker.get("volume", 0)) * price,
                 "high24h": float(ticker.get("highPrice", 0)),
                 "low24h": float(ticker.get("lowPrice", 0)),
                 "bid": float(ticker.get("bidPrice", 0)),
@@ -509,3 +562,4 @@ async def get_market_stats():
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to get stats: {str(e)}")
+

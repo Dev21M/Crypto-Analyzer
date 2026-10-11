@@ -242,7 +242,7 @@ export function CoinAnalysis() {
             />
             <MetricCard
               label="Market Cap"
-              value={formatCompactNumber(coin.marketCap, { currency: true })}
+              value={coin.marketCap ? formatCompactNumber(coin.marketCap, { currency: true }) : 'N/A'}
             />
           </div>
         </div>
@@ -253,36 +253,51 @@ export function CoinAnalysis() {
         <div className="container py-8">
           <Tabs
             tabs={[
-              { key: 'chart', label: 'Chart', icon: <TrendingUp size={16} /> },
-              { key: 'indicators', label: 'Indicators', icon: <BarChart3 size={16} /> },
-              { key: 'regime', label: 'Market Regime', icon: <Target size={16} /> },
-              { key: 'predictions', label: 'AI Predictions', icon: <Zap size={16} /> },
+              { 
+                key: 'chart', 
+                label: 'Chart', 
+                icon: <TrendingUp size={16} />,
+                content: (
+                  <ChartSection 
+                    symbol={normalizedSymbol} 
+                    candles={candles} 
+                    timeframe={timeframe} 
+                    setTimeframe={setTimeframe}
+                    height={chartHeight}
+                    coin={coin}
+                  />
+                )
+              },
+              { 
+                key: 'indicators', 
+                label: 'Indicators', 
+                icon: <BarChart3 size={16} />,
+                content: (
+                  <IndicatorsSection indicators={indicators} />
+                )
+              },
+              { 
+                key: 'regime', 
+                label: 'Market Regime', 
+                icon: <Target size={16} />,
+                content: (
+                  <RegimeSection regime={regime} />
+                )
+              },
+              { 
+                key: 'predictions', 
+                label: 'AI Predictions', 
+                icon: <Zap size={16} />,
+                content: (
+                  <PredictionsSection symbol={normalizedSymbol} predictions={predictions} predictionsLoading={predictionsLoading} onRunPrediction={loadPredictions} />
+                )
+              },
             ]}
             activeTab={activeTab}
             onChange={setActiveTab}
             variant="line"
             fullWidth
-          >
-            <TabPanel active={activeTab === 'chart'}>
-              <ChartSection 
-                symbol={normalizedSymbol} 
-                candles={candles} 
-                timeframe={timeframe} 
-                setTimeframe={setTimeframe}
-                height={chartHeight}
-                coin={coin}
-              />
-            </TabPanel>
-            <TabPanel active={activeTab === 'indicators'}>
-              <IndicatorsSection indicators={indicators} />
-            </TabPanel>
-            <TabPanel active={activeTab === 'regime'}>
-              <RegimeSection regime={regime} />
-            </TabPanel>
-            <TabPanel active={activeTab === 'predictions'}>
-              <PredictionsSection symbol={normalizedSymbol} predictions={predictions} />
-            </TabPanel>
-          </Tabs>
+          />
         </div>
 
         {/* Disclaimer */}
@@ -473,23 +488,62 @@ function RegimeSection({ regime }) {
   );
 }
 
-function PredictionsSection({ symbol, predictions }) {
+function PredictionsSection({ symbol, predictions, predictionsLoading, onRunPrediction }) {
+  const handleRunPrediction = async () => {
+    try {
+      // Call the prediction API
+      const data = await predictionApi.predict({
+        experiment: 'EXP_D_FULL',
+        model: 'xgboost',
+        task: 'classification',
+        horizon: 12,
+        use_latest_data: true
+      });
+      // The prediction is returned, we can reload predictions
+      if (data) {
+        // Reload predictions to show the new one
+        onRunPrediction();
+      }
+    } catch (err) {
+      console.error('Failed to run prediction:', err);
+    }
+  };
+
   return (
     <Card>
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold">AI Predictions</h3>
-        <Button variant="secondary" size="sm">
-          <Zap size={16} className="mr-2" />
-          Run Prediction
+        <Button 
+          variant="secondary" 
+          size="sm" 
+          onClick={handleRunPrediction}
+          disabled={predictionsLoading}
+        >
+          {predictionsLoading ? (
+            <>
+              <RotateCw size={16} className="mr-2 spin" />
+              Running...
+            </>
+          ) : (
+            <>
+              <Zap size={16} className="mr-2" />
+              Run Prediction
+            </>
+          )}
         </Button>
       </div>
-      {predictions.length === 0 ? (
+      {predictions.length === 0 && !predictionsLoading ? (
         <div className="text-center py-12">
           <Zap size={48} className="text-muted mx-auto mb-4 opacity-50" />
           <p className="text-muted mb-4">No predictions available yet</p>
-          <Button variant="primary" onClick={() => {}}>
+          <Button variant="primary" onClick={handleRunPrediction} disabled={predictionsLoading}>
             Generate Prediction
           </Button>
+        </div>
+      ) : predictionsLoading ? (
+        <div className="text-center py-12">
+          <RotateCw size={48} className="text-primary mx-auto mb-4 spin" />
+          <p className="text-muted">Running prediction...</p>
         </div>
       ) : (
         <Table
@@ -519,4 +573,36 @@ function CoinAnalysisSkeleton({ symbol }) {
       <div className="bg-secondary border-b border-primary">
         <div className="container py-6">
           <div className="flex items-center gap-4">
-   
+            <Skeleton className="h-8 w-24" />
+            <Skeleton className="h-8 w-32" />
+          </div>
+        </div>
+      </div>
+      <main className="flex-1">
+        <div className="container py-8">
+          <Skeleton className="h-40 mb-8" />
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-8">
+            {[...Array(6)].map((_, i) => <Skeleton key={i} className="h-24" />)}
+          </div>
+          <Tabs
+            tabs={[
+              { key: 'chart', label: 'Chart' },
+              { key: 'indicators', label: 'Indicators' },
+              { key: 'regime', label: 'Regime' },
+              { key: 'predictions', label: 'Predictions' },
+            ]}
+            activeTab="chart"
+            onChange={() => {}}
+          />
+          <Skeleton className="h-96 mt-6" />
+        </div>
+      </main>
+    </div>
+  );
+}
+
+function isValidNumber(value) {
+  return typeof value === 'number' && !isNaN(value) && isFinite(value);
+}
+
+export default CoinAnalysis;

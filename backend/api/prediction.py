@@ -4,6 +4,7 @@ Prediction API endpoints.
 from datetime import datetime
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
+from pydantic import BaseModel
 from backend.schemas.models import (
     PredictionRequest,
     PredictionResponse,
@@ -102,8 +103,19 @@ async def predict(request: PredictionRequest):
         raise HTTPException(status_code=500, detail=f"Prediction failed: {str(e)}")
 
 
+class HistoricalPredictionRequestFlexible(BaseModel):
+    """Flexible request model for historical predictions that accepts frontend parameters."""
+    experiment: Optional[str] = "EXP_D_FULL"
+    model: Optional[str] = "xgboost"
+    task: Optional[str] = "classification"
+    horizon: Optional[int] = 12
+    limit: Optional[int] = 20
+    start_date: Optional[datetime] = None
+    end_date: Optional[datetime] = None
+
+
 @router.post("/historical", response_model=HistoricalPredictionResponse)
-async def predict_historical(request: HistoricalPredictionRequest):
+async def predict_historical(request: HistoricalPredictionRequestFlexible):
     """
     Get historical predictions for a date range.
     
@@ -126,12 +138,7 @@ async def predict_historical(request: HistoricalPredictionRequest):
         if len(df) == 0:
             raise HTTPException(status_code=404, detail="No data in requested range")
 
-        experiment_str = request.experiment.value
-        feature_cols = model_service.data_service.data_service.get_feature_columns(experiment_str) \
-            if hasattr(model_service.data_service, 'get_feature_columns') \
-            else model_service._get_experiment_config(experiment_str)["input_dim"]
-        
-        # Actually get feature columns properly
+        experiment_str = request.experiment
         from crypto_analyzer.features.pipeline import get_feature_columns
         feature_cols = get_feature_columns(experiment_str)
         
@@ -139,11 +146,8 @@ async def predict_historical(request: HistoricalPredictionRequest):
         actuals = []
         timestamps = []
 
-        for _, row in df.iterrows():
-            # Get features at this point (would need proper sequence building)
-            # Simplified for now
-            pass
-
+        # For now, return placeholder - historical prediction not fully implemented
+        # This would require proper sequence building and model inference
         return HistoricalPredictionResponse(
             predictions=[],
             actual_values=[],

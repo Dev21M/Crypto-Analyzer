@@ -4,7 +4,7 @@ WebSocket endpoints for real-time updates.
 import logging
 from datetime import datetime
 from typing import Optional
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends, Query
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends, Query, Header
 from backend.services.websocket_manager import manager, WSMessage, WSMessageType, WSSubscribePayload
 from backend.services.prediction import ModelService, DataService
 from backend.services.fcs_market_data import get_fcs_market_service, FCSMarketDataService
@@ -32,9 +32,40 @@ def set_services(ms: ModelService, ds: DataService):
 async def websocket_endpoint(
     websocket: WebSocket,
     token: Optional[str] = Query(None),  # Optional auth token
+    origin: Optional[str] = Header(None),
 ):
     """Main WebSocket endpoint for real-time updates."""
-    await manager.connect(websocket)
+    # Allow all origins for development - in production, validate against allowed origins
+    settings = get_settings()
+    allowed_origins = settings.CORS_ORIGINS
+    
+    # Log the origin for debugging
+    logger.info(f"WebSocket connection attempt from origin: {origin}")
+    
+    # In debug mode, allow all origins
+    if settings.DEBUG:
+        logger.info(f"Debug mode: allowing WebSocket connection from origin: {origin}")
+        await manager.connect(websocket)
+    elif origin and allowed_origins:
+        # Check if origin is allowed
+        if origin not in allowed_origins:
+            logger.warning(f"WebSocket connection rejected: origin '{origin}' not in allowed origins: {allowed_origins}")
+            await websocket.close(code=4003, reason="Origin not allowed")
+            return
+        logger.info(f"WebSocket connection allowed from origin: {origin}")
+        await manager.connect(websocket)
+    elif origin and not settings.DEBUG:
+        # In production, reject unknown origins
+        logger.warning(f"WebSocket connection rejected: origin '{origin}' not allowed in production")
+        await websocket.close(code=4003, reason="Origin not allowed")
+        return
+    elif not origin:
+        # No origin header - might be direct connection or test client
+        logger.info("WebSocket connection without origin header")
+        if not settings.DEBUG:
+            await websocket.close(code=4003, reason="Origin header required")
+            return
+        await manager.connect(websocket)
 
     # Default subscriptions
     subscriptions = {

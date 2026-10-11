@@ -362,7 +362,7 @@ class FCSMarketDataService:
         
         # Binance fallback (REST only for now - WebSocket disabled)
         from backend.services.live_market_data import BinanceRestClient
-        self.binance_rest_client = BinanceRestClient(verify_ssl=False)
+        self.binance_rest_client = BinanceRestClient()
         
         self._latest_candle: Optional[CandleData] = None
         self._latest_price: Optional[float] = None
@@ -482,7 +482,7 @@ class FCSMarketDataService:
             if not candles:
                 # Fallback to Binance
                 from backend.services.live_market_data import BinanceRestClient
-                binance_client = BinanceRestClient(verify_ssl=False)
+                binance_client = BinanceRestClient()
                 candles = binance_client.get_historical_klines(
                     symbol=self.symbol.replace("BINANCE:", ""),
                     interval=self.interval,
