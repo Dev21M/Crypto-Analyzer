@@ -192,6 +192,20 @@ export function CandlestickChart({
     );
   }
 
+  if (!candles.length && !loading) {
+    return (
+      <div className={clsx('chart-container', className)} style={{ width, height }}>
+        <div className="flex flex-col items-center justify-center h-full p-6 text-center">
+          <AlertTriangle size={48} className="text-muted mb-3 opacity-50" />
+          <p className="text-muted mb-3">No chart data available for this timeframe</p>
+          <Button variant="secondary" size="sm" onClick={() => onTimeframeChange?.('5m')}>
+            Try 5m timeframe
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={clsx('chart-wrapper', className)} style={{ width }}>
       {/* Toolbar */}
@@ -324,12 +338,25 @@ export function LineChart({
     scrollZoom: false,
   };
 
+  const hasData = series.some(s => (s.x && s.x.length) || (s.data && s.data.length));
+
   if (loading || error) {
     return (
       <div className={clsx('chart-container', className)} style={{ width, height }}>
         <div className="flex flex-col items-center justify-center h-full p-6 text-center">
           {loading && <div className="spinner spinner-lg mb-3" />}
           {error && <p className="text-muted">{error.message || 'Failed to load chart'}</p>}
+        </div>
+      </div>
+    );
+  }
+
+  if (!hasData) {
+    return (
+      <div className={clsx('chart-container', className)} style={{ width, height }}>
+        <div className="flex flex-col items-center justify-center h-full p-6 text-center">
+          <AlertTriangle size={48} className="text-muted mb-3 opacity-50" />
+          <p className="text-muted mb-3">No data available to display</p>
         </div>
       </div>
     );

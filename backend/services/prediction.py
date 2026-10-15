@@ -191,18 +191,25 @@ class ModelService:
         # Load checkpoint
         checkpoint_path = self.checkpoint_dir / f"{model_name}_{experiment}_{task}.pt"
         if not checkpoint_path.exists():
-            # Try generic checkpoint
-            checkpoint_path = self.checkpoint_dir / "checkpoint.pt"
+            raise FileNotFoundError(
+                f"Model checkpoint not found: {checkpoint_path.name}. "
+                f"Expected at {self.checkpoint_dir}. "
+                f"Train the model first using scripts/run_dl_models.py"
+            )
 
-        if checkpoint_path.exists():
-            logger.info(f"Loading DL checkpoint from {checkpoint_path}")
-            checkpoint = torch.load(checkpoint_path, map_location="cpu")
-            if isinstance(checkpoint, dict) and "model_state_dict" in checkpoint:
+        logger.info(f"Loading DL checkpoint from {checkpoint_path}")
+        checkpoint = torch.load(checkpoint_path, map_location="cpu")
+        if isinstance(checkpoint, dict):
+            # Handle different checkpoint formats
+            if "model_state_dict" in checkpoint:
                 model.load_state_dict(checkpoint["model_state_dict"])
+            elif "state_dict" in checkpoint:
+                model.load_state_dict(checkpoint["state_dict"])
             else:
+                # Assume the dict itself is the state_dict
                 model.load_state_dict(checkpoint)
         else:
-            logger.warning(f"No checkpoint found for {model_name} {experiment} {task}")
+            model.load_state_dict(checkpoint)
 
         model.eval()
         self._dl_cache[cache_key] = (model, config)

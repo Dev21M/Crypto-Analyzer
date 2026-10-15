@@ -2,7 +2,7 @@
  * WebSocket Service for real-time updates
  */
 
-import { useWebSocket } from '../hooks/useTheme';
+import { useState, useEffect } from 'react';
 
 class WebSocketService {
   constructor() {
@@ -244,7 +244,5 @@ export function useRegimeWebSocket(symbol = 'BTCUSDT') {
 
   return { currentRegime };
 }
-
-import { useState, useEffect } from 'react';
 
 export default wsService;

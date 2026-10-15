@@ -30,6 +30,7 @@ export function Skeleton({
       )}
       style={{ width, height }}
       {...props}
+      aria-hidden="true"
     />
   );
 }

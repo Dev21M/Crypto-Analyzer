@@ -1,12 +1,31 @@
 """
 Application configuration using Pydantic Settings.
 All settings loaded from environment variables with sensible defaults.
+Paths are resolved relative to the project root for portability.
 """
 from functools import lru_cache
 from pathlib import Path
 from pydantic_settings import BaseSettings
-from pydantic import Field
-from typing import List
+from pydantic import Field, field_validator
+from typing import List, Optional
+
+
+def _get_project_root() -> Path:
+    """Get the project root directory (parent of backend/)."""
+    # This file is at backend/core/config.py, so project root is parent.parent.parent
+    return Path(__file__).parent.parent.parent
+
+
+_PROJECT_ROOT = _get_project_root()
+
+
+def _resolve_path(path_str: str) -> Path:
+    """Resolve a path string relative to project root if not absolute."""
+    path = Path(path_str)
+    if path.is_absolute():
+        return path.resolve()
+    # Relative paths are resolved from project root
+    return (_PROJECT_ROOT / path).resolve()
 
 
 class Settings(BaseSettings):
@@ -35,14 +54,29 @@ class Settings(BaseSettings):
     REDIS_URL: str = "redis://redis:6379/0"
     REDIS_CACHE_TTL: int = 60  # seconds
 
-    # Model paths
-    MODEL_CHECKPOINT_DIR: Path = Path("D:/CryptoAnalyzer/models/checkpoints")
-    SEQUENCE_TENSOR_DIR: Path = Path("D:/CryptoAnalyzer/data/processed/tensors")
-    EXPERIMENT_RESULTS_DIR: Path = Path("D:/CryptoAnalyzer/experiments/results")
+    # Model paths (relative to project root)
+    MODEL_CHECKPOINT_DIR: Path = Field(
+        default="models/checkpoints",
+        description="Directory containing model checkpoints"
+    )
+    SEQUENCE_TENSOR_DIR: Path = Field(
+        default="data/processed/tensors",
+        description="Directory containing sequence tensor files"
+    )
+    EXPERIMENT_RESULTS_DIR: Path = Field(
+        default="experiments/results",
+        description="Directory containing experiment result files"
+    )
 
-    # Data
-    RAW_DATA_PATH: Path = Path("D:/CryptoAnalyzer/data/raw/btcusdt_5m_raw.csv")
-    FEATURES_DATA_PATH: Path = Path("D:/CryptoAnalyzer/data/processed/btcusdt_5m_features.csv")
+    # Data paths (relative to project root)
+    RAW_DATA_PATH: Path = Field(
+        default="data/raw/btcusdt_5m_raw.csv",
+        description="Path to raw OHLCV data CSV"
+    )
+    FEATURES_DATA_PATH: Path = Field(
+        default="data/processed/btcusdt_5m_features.csv",
+        description="Path to processed features CSV"
+    )
 
     # FCS API (primary live data provider)
     FCS_API_KEY: str = Field(default="", description="FCS API Key from environment")
@@ -70,6 +104,16 @@ class Settings(BaseSettings):
     # Logging
     LOG_LEVEL: str = "INFO"
     LOG_FORMAT: str = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+
+    @field_validator(
+        "MODEL_CHECKPOINT_DIR", "SEQUENCE_TENSOR_DIR", "EXPERIMENT_RESULTS_DIR",
+        "RAW_DATA_PATH", "FEATURES_DATA_PATH",
+        mode="before"
+    )
+    @classmethod
+    def resolve_paths(cls, v: str | Path) -> Path:
+        """Resolve all path fields relative to project root."""
+        return _resolve_path(str(v))
 
     class Config:
         env_file = ".env"

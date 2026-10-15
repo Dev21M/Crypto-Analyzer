@@ -1,18 +1,22 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { 
   ChevronLeft, ChevronRight, TrendingUp, TrendingDown, Star, Share2, 
   Download, Maximize2, Minimize2, Loader2, AlertTriangle, Info,
-  BarChart3, Target, Zap, RotateCw
+  BarChart3, Target, Zap, RotateCw, Search, ChevronDown
 } from 'lucide-react';
-import { Button, Card, MetricCard, Badge, Avatar, Tabs, Table, createColumn, Skeleton } from '../../components/ui';
+import { Button, Card, MetricCard, Badge, Avatar, Tabs, Table, createColumn, Skeleton, Input } from '../../components/ui';
 import { CandlestickChart, LineChart } from '../../components/charts';
 import { marketApi, predictionApi } from '../../services/api';
 import { formatPrice, formatChange, formatCompactNumber, formatPercentage, formatRelativeTime, parseSymbolPair } from '../../utils/formatters';
-import { TIMEFRAMES, INDICATORS, REGIMES, REGIME_COLORS } from '../../utils/constants';
+import { TIMEFRAMES, INDICATORS, REGIMES, REGIME_COLORS, EXPERIMENTS, MODELS, TASKS, HORIZONS } from '../../utils/constants';
+import { clsx } from 'clsx';
+
+// Memoized tab content components to prevent re-renders on tab switch
 
 export function CoinAnalysis() {
   const { symbol } = useParams();
+  const navigate = useNavigate();
   const [coin, setCoin] = useState(null);
   const [candles, setCandles] = useState([]);
   const [indicators, setIndicators] = useState(null);
@@ -22,9 +26,15 @@ export function CoinAnalysis() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [timeframe, setTimeframe] = useState('5m');
+  const [candlesLoading, setCandlesLoading] = useState(false);
   const [chartHeight, setChartHeight] = useState(500);
   const [activeTab, setActiveTab] = useState('chart');
   const [inWatchlist, setInWatchlist] = useState(false);
+  const [showCoinSelector, setShowCoinSelector] = useState(false);
+  const [coinSearchQuery, setCoinSearchQuery] = useState('');
+  const [availableCoins, setAvailableCoins] = useState([]);
+  const [coinsLoading, setCoinsLoading] = useState(false);
+  const coinSelectorRef = useRef(null);
 
   // Normalize symbol: default to BTC, remove USDT suffix if present
   const normalizedSymbol = useMemo(() => {
@@ -32,9 +42,55 @@ export function CoinAnalysis() {
     return symbol.replace('USDT', '').toUpperCase();
   }, [symbol]);
 
+  // Load available coins for the selector
+  const loadAvailableCoins = useCallback(async () => {
+    if (availableCoins.length > 0) return;
+    setCoinsLoading(true);
+    try {
+      const data = await marketApi.getCoins();
+      setAvailableCoins(data || []);
+    } catch (err) {
+      console.error('Failed to load coins:', err);
+    } finally {
+      setCoinsLoading(false);
+    }
+  }, [availableCoins.length]);
+
+  // Filter coins based on search query
+  const filteredCoins = useMemo(() => {
+    if (!coinSearchQuery) return availableCoins.slice(0, 50);
+    const query = coinSearchQuery.toLowerCase();
+    return availableCoins.filter(coin => 
+      coin.symbol.toLowerCase().includes(query) ||
+      coin.name.toLowerCase().includes(query)
+    ).slice(0, 50);
+  }, [availableCoins, coinSearchQuery]);
+
+  const handleCoinSelect = (selectedSymbol) => {
+    navigate(`/coin/${selectedSymbol}`);
+    setShowCoinSelector(false);
+    setCoinSearchQuery('');
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (coinSelectorRef.current && !coinSelectorRef.current.contains(event.target)) {
+        setShowCoinSelector(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   useEffect(() => {
     loadCoinData();
     checkWatchlist();
+  }, [normalizedSymbol]);
+
+  // Clear predictions when symbol changes
+  useEffect(() => {
+    setPredictions([]);
+    setPredictionsLoading(false);
   }, [normalizedSymbol]);
 
   useEffect(() => {
@@ -43,8 +99,6 @@ export function CoinAnalysis() {
 
   // Load predictions when tab is activated or on initial load
   const loadPredictions = useCallback(async () => {
-    if (predictions.length > 0) return; // Already loaded
-    
     try {
       setPredictionsLoading(true);
       // Try to get historical predictions
@@ -63,7 +117,7 @@ export function CoinAnalysis() {
     } finally {
       setPredictionsLoading(false);
     }
-  }, [predictions.length]);
+  }, []);
 
   // Load predictions when predictions tab is activated
   useEffect(() => {
@@ -93,6 +147,7 @@ export function CoinAnalysis() {
 
   const loadCandles = async () => {
     try {
+      setCandlesLoading(true);
       const data = await marketApi.getCandles(normalizedSymbol, { 
         interval: timeframe, 
         limit: 500 
@@ -100,6 +155,8 @@ export function CoinAnalysis() {
       setCandles(data);
     } catch (err) {
       console.error('Failed to load candles:', err);
+    } finally {
+      setCandlesLoading(false);
     }
   };
 
@@ -120,14 +177,99 @@ export function CoinAnalysis() {
   const shareCoin = async () => {
     if (navigator.share) {
       await navigator.share({
-        title: `${coin?.name} (${normalizedSymbol}) Analysis`,
-        text: `Check out ${coin?.name} analysis on CryptoAnalyzer`,
+        title: coin.name + ' (' + normalizedSymbol + ') Analysis',
+        text: 'Check out ' + coin.name + ' analysis on CryptoAnalyzer',
         url: window.location.href,
       });
     } else {
       navigator.clipboard.writeText(window.location.href);
     }
   };
+
+  // If no symbol in URL and we're on /analysis route, show coin selector
+  const isAnalysisRoute = !symbol;
+
+  if (isAnalysisRoute) {
+    return (
+      <div className="min-h-screen bg-primary">
+        <div className="bg-secondary border-b border-primary">
+          <div className="container py-6">
+            <div className="flex items-center gap-4">
+              <Link to="/markets" className="text-muted hover:text-primary text-sm inline-flex items-center gap-1">
+                <ChevronLeft size={16} /> Markets
+              </Link>
+              <h1 className="text-2xl font-bold">Coin Analysis</h1>
+            </div>
+            <p className="text-muted mt-2">Select a cryptocurrency to analyze</p>
+          </div>
+        </div>
+        <main className="flex-1">
+          <div className="container py-8">
+            <Card className="max-w-2xl mx-auto">
+              <div className="card-header">
+                <h3 className="card-title">Search Coins</h3>
+                <p className="card-subtitle">Type to search by symbol or name</p>
+              </div>
+              <div className="card-content">
+                <div className="relative" ref={coinSelectorRef}>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" size={18} />
+                    <input
+                      type="text"
+                      placeholder="Search coins (BTC, ETH, SOL...)"
+                      value={coinSearchQuery}
+                      onChange={(e) => {
+                        setCoinSearchQuery(e.target.value);
+                        loadAvailableCoins();
+                      }}
+                      onFocus={() => {
+                        setShowCoinSelector(true);
+                        loadAvailableCoins();
+                      }}
+                      className="form-input pl-10"
+                      autoComplete="off"
+                      aria-label="Search cryptocurrencies"
+                    />
+                  </div>
+                  {showCoinSelector && (
+                    <div className="search-dropdown animate-fadeIn mt-1" style={{ maxHeight: '400px', overflowY: 'auto' }}>
+                      {coinsLoading ? (
+                        <div className="search-loading p-4 text-center">
+                          <div className="spinner spinner-sm mx-auto mb-2" />
+                          <span className="text-muted">Loading coins...</span>
+                        </div>
+                      ) : filteredCoins.length === 0 ? (
+                        <div className="search-empty p-4 text-center text-muted">
+                          No coins found
+                        </div>
+                      ) : (
+                        filteredCoins.map((coin) => (
+                          <button
+                            key={coin.symbol}
+                            className="search-result-item w-full text-left"
+                            onClick={() => handleCoinSelect(coin.symbol)}
+                            type="button"
+                          >
+                            <div className="coin-avatar-sm" style={{ background: `hsl(${coin.symbol.charCodeAt(0) * 10} 70% 50%)` }}>
+                              {coin.symbol.charAt(0)}
+                            </div>
+                            <div className="coin-info">
+                              <span className="coin-symbol">{coin.symbol}</span>
+                              <span className="coin-name">{coin.name}</span>
+                            </div>
+                          </button>
+                        ))
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </Card>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   if (loading) {
     return <CoinAnalysisSkeleton symbol={normalizedSymbol} />;
@@ -221,7 +363,7 @@ export function CoinAnalysis() {
             <MetricCard
               label="24h Change"
               value={isPositive ? '+' : ''}
-              suffix={`${priceChange24h.toFixed(2)}%`}
+              suffix={priceChange24h.toFixed(2) + '%'}
               trend={isPositive ? 'up' : 'down'}
               change={Math.abs(priceChange24h).toFixed(2)}
               changeLabel="%"
@@ -265,6 +407,7 @@ export function CoinAnalysis() {
                     setTimeframe={setTimeframe}
                     height={chartHeight}
                     coin={coin}
+                    loading={candlesLoading}
                   />
                 )
               },
@@ -289,7 +432,7 @@ export function CoinAnalysis() {
                 label: 'AI Predictions', 
                 icon: <Zap size={16} />,
                 content: (
-                  <PredictionsSection symbol={normalizedSymbol} predictions={predictions} predictionsLoading={predictionsLoading} onRunPrediction={loadPredictions} />
+                  <PredictionsSection symbol={normalizedSymbol} predictions={predictions} predictionsLoading={predictionsLoading} setPredictionsLoading={setPredictionsLoading} onRunPrediction={loadPredictions} />
                 )
               },
             ]}
@@ -323,7 +466,8 @@ export function CoinAnalysis() {
   );
 }
 
-function ChartSection({ symbol, candles, timeframe, setTimeframe, height, coin }) {
+
+const ChartSection = React.memo(function ChartSection({ symbol, candles, timeframe, setTimeframe, height, coin, loading }) {
   const [expanded, setExpanded] = useState(false);
 
   return (
@@ -361,6 +505,7 @@ function ChartSection({ symbol, candles, timeframe, setTimeframe, height, coin }
         height={expanded ? 800 : height}
         showVolume={true}
         theme="dark"
+        loading={loading}
       />
       <div className="mt-4 text-xs text-muted flex items-center justify-between">
         <span>Data source: {coin?.dataSource || 'FCS API'}</span>
@@ -368,9 +513,9 @@ function ChartSection({ symbol, candles, timeframe, setTimeframe, height, coin }
       </div>
     </Card>
   );
-}
+});
 
-function IndicatorsSection({ indicators }) {
+const IndicatorsSection = React.memo(function IndicatorsSection({ indicators }) {
   if (!indicators) {
     return (
       <Card>
@@ -418,9 +563,9 @@ function IndicatorsSection({ indicators }) {
       })}
     </div>
   );
-}
+});
 
-function RegimeSection({ regime }) {
+const RegimeSection = React.memo(function RegimeSection({ regime }) {
   if (!regime) {
     return (
       <Card>
@@ -486,59 +631,164 @@ function RegimeSection({ regime }) {
       </Card>
     </div>
   );
-}
+});
 
-function PredictionsSection({ symbol, predictions, predictionsLoading, onRunPrediction }) {
+const PredictionsSection = React.memo(function PredictionsSection({ symbol, predictions, predictionsLoading, setPredictionsLoading, onRunPrediction }) {
+  const [selectedExperiment, setSelectedExperiment] = useState('EXP_D_FULL');
+  const [selectedModel, setSelectedModel] = useState('xgboost');
+  const [selectedTask, setSelectedTask] = useState('classification');
+  const [selectedHorizon, setSelectedHorizon] = useState(12);
+  const [lastPrediction, setLastPrediction] = useState(null);
+
   const handleRunPrediction = async () => {
     try {
-      // Call the prediction API
+      setPredictionsLoading(true);
       const data = await predictionApi.predict({
-        experiment: 'EXP_D_FULL',
-        model: 'xgboost',
-        task: 'classification',
-        horizon: 12,
+        experiment: selectedExperiment,
+        model: selectedModel,
+        task: selectedTask,
+        horizon: selectedHorizon,
         use_latest_data: true
       });
-      // The prediction is returned, we can reload predictions
       if (data) {
-        // Reload predictions to show the new one
+        setLastPrediction(data);
         onRunPrediction();
       }
     } catch (err) {
       console.error('Failed to run prediction:', err);
+    } finally {
+      setPredictionsLoading(false);
     }
   };
 
   return (
     <Card>
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold">AI Predictions</h3>
-        <Button 
-          variant="secondary" 
-          size="sm" 
-          onClick={handleRunPrediction}
-          disabled={predictionsLoading}
-        >
-          {predictionsLoading ? (
-            <>
-              <RotateCw size={16} className="mr-2 spin" />
-              Running...
-            </>
-          ) : (
-            <>
-              <Zap size={16} className="mr-2" />
-              Run Prediction
-            </>
-          )}
-        </Button>
+      {/* Configuration Panel */}
+      <div className="mb-4 p-4 bg-tertiary/50 rounded-lg">
+        <h4 className="font-medium mb-3">Prediction Configuration</h4>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div>
+            <label className="text-xs font-medium text-muted block mb-1">Experiment</label>
+            <select
+              value={selectedExperiment}
+              onChange={(e) => setSelectedExperiment(e.target.value)}
+              className="form-select form-select-sm"
+              disabled={predictionsLoading}
+            >
+              {EXPERIMENTS.map(exp => (
+                <option key={exp.id} value={exp.id}>{exp.label} ({exp.features} features)</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="text-xs font-medium text-muted block mb-1">Model</label>
+            <select
+              value={selectedModel}
+              onChange={(e) => setSelectedModel(e.target.value)}
+              className="form-select form-select-sm"
+              disabled={predictionsLoading}
+            >
+              {MODELS.map(m => (
+                <option key={m.id} value={m.id}>{m.label} ({m.category})</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="text-xs font-medium text-muted block mb-1">Task</label>
+            <select
+              value={selectedTask}
+              onChange={(e) => setSelectedTask(e.target.value)}
+              className="form-select form-select-sm"
+              disabled={predictionsLoading}
+            >
+              {TASKS.map(t => (
+                <option key={t.id} value={t.id}>{t.label}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="text-xs font-medium text-muted block mb-1">Horizon</label>
+            <select
+              value={selectedHorizon}
+              onChange={(e) => setSelectedHorizon(Number(e.target.value))}
+              className="form-select form-select-sm"
+              disabled={predictionsLoading}
+            >
+              {HORIZONS.map(h => (
+                <option key={h.value} value={h.value}>{h.label}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+        <div className="mt-3 flex items-center gap-2">
+          <Button 
+            variant="primary" 
+            size="sm" 
+            onClick={handleRunPrediction}
+            disabled={predictionsLoading}
+          >
+            {predictionsLoading ? (
+              <>
+                <RotateCw size={16} className="mr-2 spin" />
+                Running...
+              </>
+            ) : (
+              <>
+                <Zap size={16} className="mr-2" />
+                Run Prediction
+              </>
+            )}
+          </Button>
+          <span className="text-xs text-muted">
+            Research tool - Not financial advice
+          </span>
+        </div>
       </div>
-      {predictions.length === 0 && !predictionsLoading ? (
+
+      {/* Latest Prediction Result */}
+      {lastPrediction && (
+        <div className="mb-4 p-4 bg-primary-bg/50 border border-primary/50 rounded-lg">
+          <h4 className="font-medium mb-2">Latest Prediction Result</h4>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+            <div>
+              <span className="text-muted block mb-1">Direction</span>
+              <span className={`${lastPrediction.direction === 1 ? 'text-success' : 'text-danger'} font-mono font-semibold`}>
+                {lastPrediction.direction === 1 ? 'UP ▲' : 'DOWN ▼'}
+              </span>
+            </div>
+            <div>
+              <span className="text-muted block mb-1">Confidence</span>
+              <span className="font-mono font-semibold">
+                {(lastPrediction.confidence * 100).toFixed(1)}%
+              </span>
+            </div>
+            <div>
+              <span className="text-muted block mb-1">Horizon</span>
+              <span className="font-mono font-semibold">
+                {lastPrediction.horizon} candles
+              </span>
+            </div>
+            <div>
+              <span className="text-muted block mb-1">Model</span>
+              <span className="font-mono font-semibold">
+                {lastPrediction.model}
+              </span>
+            </div>
+          </div>
+          <p className="text-xs text-muted mt-2">
+            Predicted at {formatRelativeTime(lastPrediction.timestamp)} | 
+            Experiment: {lastPrediction.experiment} | 
+            Task: {lastPrediction.task}
+          </p>
+        </div>
+      )}
+
+      {/* Historical Predictions Table */}
+      {predictions.length === 0 && !predictionsLoading && !lastPrediction ? (
         <div className="text-center py-12">
           <Zap size={48} className="text-muted mx-auto mb-4 opacity-50" />
           <p className="text-muted mb-4">No predictions available yet</p>
-          <Button variant="primary" onClick={handleRunPrediction} disabled={predictionsLoading}>
-            Generate Prediction
-          </Button>
+          <p className="text-xs text-muted mb-4">Configure parameters above and click "Run Prediction"</p>
         </div>
       ) : predictionsLoading ? (
         <div className="text-center py-12">
@@ -550,8 +800,9 @@ function PredictionsSection({ symbol, predictions, predictionsLoading, onRunPred
           columns={[
             createColumn({ key: 'model', header: 'Model', accessor: 'model' }),
             createColumn({ key: 'experiment', header: 'Experiment', accessor: 'experiment' }),
+            createColumn({ key: 'task', header: 'Task', accessor: 'task' }),
             createColumn({ key: 'horizon', header: 'Horizon', accessor: 'horizon', cell: (v) => `${v} candles` }),
-            createColumn({ key: 'direction', header: 'Direction', accessor: 'direction', cell: (v) => v === 1 ? 'UP' : 'DOWN' }),
+            createColumn({ key: 'direction', header: 'Direction', accessor: 'direction', cell: (v) => v === 1 ? 'UP ▲' : 'DOWN ▼' }),
             createColumn({ key: 'confidence', header: 'Confidence', accessor: 'confidence', cell: (v) => `${(v * 100).toFixed(1)}%` }),
             createColumn({ key: 'timestamp', header: 'Time', accessor: 'timestamp', cell: (v) => formatRelativeTime(v) }),
           ]}
@@ -560,7 +811,7 @@ function PredictionsSection({ symbol, predictions, predictionsLoading, onRunPred
       )}
     </Card>
   );
-}
+});
 
 function TabPanel({ active, children }) {
   if (!active) return null;

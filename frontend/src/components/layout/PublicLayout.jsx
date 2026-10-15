@@ -1,17 +1,16 @@
-import React, { useState, useCallback } from 'react';
+import React, { useCallback } from 'react';
 import { Outlet, useLocation, useNavigate, Link } from 'react-router-dom';
 import { Header } from './Header';
 import { useTheme } from '../../hooks/useTheme';
-import { LayoutDashboard, BarChart3, Search, Zap, BookOpen } from 'lucide-react';
+import { LayoutDashboard, BarChart3, Search, Zap, BookOpen, ExternalLink } from 'lucide-react';
 
 export function PublicLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   
   // For public layout, we don't have a persistent sidebar, just the header
-  const handleMenuClick = useCallback(() => setSidebarOpen(true), []);
+  const handleMenuClick = useCallback(() => {}, []);
   const handleToggleSidebar = useCallback(() => {}, []);
 
   const publicNavItems = [
@@ -32,7 +31,7 @@ export function PublicLayout() {
         wsStatus="disconnected"
         onThemeToggle={toggleTheme}
       />
-      <main className="flex-1">
+      <main id="main-content" className="flex-1">
         <Outlet />
       </main>
       <footer className="footer border-t border-primary bg-secondary/50">
@@ -66,7 +65,7 @@ export function PublicLayout() {
               <h4 className="font-semibold mb-3">Resources</h4>
               <ul className="space-y-2 text-sm text-muted">
                 <li><Link to="/learn" className="hover:text-primary">Learn</Link></li>
-                <li><Link to="/docs" className="hover:text-primary">Documentation</Link></li>
+                <li><a href="https://www.coinbase.com/learn/crypto-glossary" target="_blank" rel="noopener noreferrer" className="hover:text-primary flex items-center gap-1">Glossary <ExternalLink size={12} /></a></li>
                 <li><Link to="/api-docs" className="hover:text-primary">API Reference</Link></li>
               </ul>
             </div>
@@ -83,9 +82,9 @@ export function PublicLayout() {
               © {new Date().getFullYear()} CryptoAnalyzer. Not financial advice.
             </p>
             <div className="flex items-center gap-4 text-sm text-muted">
-              <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="hover:text-primary">GitHub</a>
-              <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="hover:text-primary">Twitter</a>
-              <a href="/docs" className="hover:text-primary">Docs</a>
+              <a href="https://github.com/cryptoanalyzer" target="_blank" rel="noopener noreferrer" className="hover:text-primary">GitHub</a>
+              <a href="https://twitter.com/cryptoanalyzer" target="_blank" rel="noopener noreferrer" className="hover:text-primary">Twitter</a>
+              <Link to="/docs" className="hover:text-primary">Docs</Link>
             </div>
           </div>
         </div>

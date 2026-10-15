@@ -2,6 +2,19 @@
  * API Client for backend communication
  */
 
+import * as cacheUtils from '../utils/cache';
+
+const { 
+  cachedGet, 
+  prefetchData, 
+  invalidateCache, 
+  invalidateAllCache, 
+  invalidateSymbolCache,
+  getCacheStats,
+  clearAllCache,
+  DEFAULT_TTL 
+} = cacheUtils;
+
 const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
 class ApiClient {
@@ -42,7 +55,19 @@ class ApiClient {
     }
   }
 
-  get(endpoint, params = {}) {
+  // Cached GET with automatic caching and deduplication
+  async get(endpoint, params = {}, options = {}) {
+    const { ttl, forceRefresh, deduplicate } = options;
+    const cachedGetOptions = { ttl, forceRefresh, deduplicate };
+    
+    // Remove cache options from params
+    const { ttl: _, forceRefresh: __, deduplicate: ___, ...apiParams } = params;
+    
+    return cachedGet(this, endpoint, apiParams, cachedGetOptions);
+  }
+
+  // Uncached GET for when you explicitly don't want caching
+  async getUncached(endpoint, params = {}) {
     const url = new URL(endpoint, this.baseUrl);
     Object.entries(params).forEach(([key, value]) => {
       if (value !== undefined && value !== null) {
@@ -69,7 +94,35 @@ class ApiClient {
   delete(endpoint) {
     return this.request(endpoint, { method: 'DELETE' });
   }
+
+  // Cache management
+  invalidateCache(pattern) {
+    return invalidateCache(pattern);
+  }
+
+  invalidateAllCache() {
+    return invalidateAllCache();
+  }
+
+  invalidateSymbolCache(symbol) {
+    return invalidateSymbolCache(symbol);
+  }
+
+  getCacheStats() {
+    return getCacheStats();
+  }
+
+  clearCache() {
+    return clearAllCache();
+  }
+
+  // Prefetch data
+  async prefetchData(endpoint, params = {}, options = {}) {
+    return prefetchData(this, endpoint, params, options);
+  }
 }
+
+export { DEFAULT_TTL };
 
 class ApiError extends Error {
   constructor(message, status, data) {

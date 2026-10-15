@@ -16,29 +16,27 @@ export function Footer({
     product: [
       { label: 'Markets', href: '/markets' },
       { label: 'Analysis', href: '/analysis' },
-      { label: 'Screener', href: '/screener' },
-      { label: 'Watchlist', href: '/watchlist' },
-      { label: 'Portfolio', href: '/portfolio' },
+      { label: 'Watchlist', href: '/watchlist', comingSoon: true },
+      { label: 'Portfolio', href: '/portfolio', comingSoon: true },
     ],
     company: [
-      { label: 'About', href: '/about' },
-      { label: 'Blog', href: '/blog' },
-      { label: 'Careers', href: '/careers' },
-      { label: 'Press', href: '/press' },
-      { label: 'Contact', href: '/contact' },
+      { label: 'About', href: '/about', comingSoon: true },
+      { label: 'Blog', href: '/blog', comingSoon: true },
+      { label: 'Careers', href: '/careers', comingSoon: true },
+      { label: 'Contact', href: '/contact', comingSoon: true },
     ],
     resources: [
-      { label: 'Documentation', href: '/docs' },
+      { label: 'Documentation', href: '/docs', comingSoon: true },
       { label: 'API Reference', href: '/api-docs' },
       { label: 'Learn', href: '/learn' },
-      { label: 'Community', href: '/community' },
-      { label: 'Status', href: '/status' },
+      { label: 'Community', href: 'https://github.com/cryptoanalyzer/discussions', external: true },
+      { label: 'Glossary', href: 'https://www.coinbase.com/learn/crypto-glossary', external: true },
     ],
     legal: [
       { label: 'Privacy Policy', href: '/privacy' },
       { label: 'Terms of Service', href: '/terms' },
-      { label: 'Cookie Policy', href: '/cookies' },
-      { label: 'Security', href: '/security' },
+      { label: 'Cookie Policy', href: '/cookies', comingSoon: true },
+      { label: 'Security', href: '/security', comingSoon: true },
     ],
   };
 
@@ -85,6 +83,37 @@ export function Footer({
     );
   };
 
+  const renderLink = (item) => {
+    if (item.comingSoon) {
+      return (
+        <span className="flex items-center gap-1 text-sm text-muted">
+          {item.label}
+          <span className="text-xs px-1.5 py-0.5 bg-warning/20 text-warning rounded-full">Soon</span>
+        </span>
+      );
+    }
+    if (item.external) {
+      return (
+        <a
+          href={item.href}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-sm text-muted hover:text-primary flex items-center gap-1"
+        >
+          {item.label} <ExternalLink size={12} />
+        </a>
+      );
+    }
+    return (
+      <a
+        href={item.href}
+        className="text-sm text-muted hover:text-primary"
+      >
+        {item.label}
+      </a>
+    );
+  };
+
   return (
     <footer className={clsx('footer border-t border-primary', className)} {...props}>
       <div className="container px-6 py-12">
@@ -120,13 +149,8 @@ export function Footer({
               </h4>
               <ul className="space-y-3">
                 {items.map((item) => (
-                  <li key={item.href}>
-                    <a
-                      href={item.href}
-                      className="text-sm text-muted hover:text-primary transition-colors"
-                    >
-                      {item.label}
-                    </a>
+                  <li key={item.href || item.label}>
+                    {renderLink(item)}
                   </li>
                 ))}
               </ul>

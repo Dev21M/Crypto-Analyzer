@@ -11,8 +11,9 @@ import {
   ChevronRight,
   Bell,
 } from 'lucide-react';
-import { Sidebar } from '../Sidebar';
-import { useApi, useWebSocket } from '../../hooks/useApi';
+import { DashboardSidebar as Sidebar } from './Sidebar';
+import { useApi } from '../../hooks/useApi';
+import { useWebSocketService } from '../../services/websocket';
 import { DisclaimerBanner } from '../DisclaimerBanner';
 import { useTheme } from '../../hooks/useTheme';
 import { Header } from '../layout/Header';
@@ -24,44 +25,48 @@ export function DashboardLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   
-  const { data: apiData, loading: apiLoading, error: apiError } = useApi();
-  const { 
-    connected, 
-    connect, 
-    disconnect, 
-    subscribe, 
-    lastMessage,
-    subscribeToPredictions,
-    subscribeToMarket,
-    subscribeToRegimes,
-  } = useWebSocket();
-  const { theme, toggleTheme } = useTheme();
-
-  useEffect(() => {
-    if (connected) setWsStatus('connected');
-    else setWsStatus('disconnected');
-  }, [connected]);
-
-  useEffect(() => {
-    connect();
-    subscribeToPredictions();
-    subscribeToMarket();
-    subscribeToRegimes();
-    return () => disconnect();
-  }, [connect, disconnect, subscribeToPredictions, subscribeToMarket, subscribeToRegimes]);
-
-  useEffect(() => {
-    if (lastMessage) {
-      console.log('WS Message:', lastMessage);
-    }
-  }, [lastMessage]);
-
   // Derive active page from current location
   const activePage = useMemo(() => {
     const path = location.pathname.replace('/dashboard', '') || '/';
     if (path === '/' || path === '/dashboard') return 'dashboard';
-    return path.replace('/', '');
+    return path.replace(/^\//, '').split('/')[0];
   }, [location.pathname]);
+   
+  const { data: apiData, loading: apiLoading, error: apiError } = useApi();
+  const wsService = useWebSocketService();
+  const { theme, toggleTheme } = useTheme();
+
+  // WebSocket connection management
+  useEffect(() => {
+    const connect = async () => {
+      await wsService.connect();
+      wsService.subscribeToPredictions();
+      wsService.subscribeToMarket();
+      wsService.subscribeToRegimes();
+      setWsStatus('connected');
+    };
+
+    connect();
+
+    // Listen for connection changes
+    const unsubscribeOpen = wsService.on('open', () => setWsStatus('connected'));
+    const unsubscribeClose = wsService.on('close', () => setWsStatus('disconnected'));
+    const unsubscribeError = wsService.on('error', () => setWsStatus('disconnected'));
+
+    return () => {
+      unsubscribeOpen();
+      unsubscribeClose();
+      unsubscribeError();
+    };
+  }, [wsService]);
+
+  // Listen for messages (optional - for debugging)
+  useEffect(() => {
+    const unsubscribe = wsService.on('message', (message) => {
+      console.log('WS Message:', message);
+    });
+    return () => unsubscribe();
+  }, [wsService]);
 
   const NAV_ITEMS = [
     { id: 'dashboard', label: 'Dashboard', icon: Home, path: '/dashboard' },
@@ -86,6 +91,8 @@ export function DashboardLayout() {
     const item = NAV_ITEMS.find(i => i.id === itemId);
     if (item && item.path) {
       navigate(item.path);
+      // Close mobile sidebar after navigation
+      setSidebarOpen(false);
     }
   }, [navigate]);
 
@@ -95,14 +102,12 @@ export function DashboardLayout() {
   return (
     <div className="app">
       <Sidebar
+        navigation={NAV_ITEMS}
+        activeKey={activePage}
+        onNavigate={handleNavClick}
         collapsed={sidebarCollapsed}
-        open={sidebarOpen}
-        onClose={() => setSidebarOpen(false)}
-        navItems={NAV_ITEMS}
-        activePage={activePage}
-        onNavClick={handleNavClick}
         onToggleCollapse={handleToggleSidebar}
-        wsStatus={wsStatus}
+        className={sidebarOpen ? 'open' : ''}
       />
 
       <div className="main-content">
@@ -114,7 +119,7 @@ export function DashboardLayout() {
           wsStatus={wsStatus}
           onThemeToggle={toggleTheme}
         />
-        <main className="content">
+        <main id="main-content" className="content">
           <Outlet />
         </main>
       </div>

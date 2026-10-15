@@ -105,8 +105,8 @@ class DLTrainer:
                 running_loss += loss.item() * batch_x.size(0)
                 total_samples += batch_x.size(0)
 
-                all_preds.append(outputs.cpu().numpy())
-                all_trues.append(batch_y.cpu().numpy())
+                all_preds.append(np.array(outputs.detach().cpu()))
+                all_trues.append(np.array(batch_y.detach().cpu()))
 
         avg_loss = running_loss / max(1, total_samples)
         y_pred = np.vstack(all_preds).ravel()

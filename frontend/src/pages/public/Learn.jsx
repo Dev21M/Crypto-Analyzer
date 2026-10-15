@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { BookOpen, Zap, Target, BarChart3, Shield, TrendingUp, ArrowRight, ChevronRight, Play, Clock, Users, GraduationCap } from 'lucide-react';
+import { BookOpen, Zap, Target, BarChart3, Shield, TrendingUp, ArrowRight, ChevronRight, Play, Clock, Users, GraduationCap, AlertCircle, Info, ExternalLink } from 'lucide-react';
 import { Card, Button, Badge } from '../../components/ui';
 
 const categories = [
@@ -98,26 +98,51 @@ const featuredArticles = [
   },
 ];
 
+const externalResources = [
+  {
+    icon: <BookOpen size={28} />,
+    title: 'Glossary',
+    description: 'Comprehensive dictionary of crypto terms, acronyms, and jargon.',
+    link: 'https://www.coinbase.com/learn/crypto-glossary',
+    external: true,
+  },
+  {
+    icon: <Zap size={28} />,
+    title: 'API Documentation',
+    description: 'Integrate CryptoAnalyzer data into your own applications.',
+    link: '/api-docs',
+    external: false,
+    comingSoon: true,
+  },
+  {
+    icon: <Users size={28} />,
+    title: 'Community Forum',
+    description: 'Discuss strategies, share insights, and learn from other analysts.',
+    link: 'https://github.com/cryptoanalyzer/discussions',
+    external: true,
+  },
+];
+
 export function Learn() {
   return (
     <div className="min-h-screen bg-primary">
       <main className="flex-1">
         {/* Hero */}
-        <section className="hero">
+        <section className="hero" aria-labelledby="learn-hero-title">
           <div className="container">
             <div className="hero-badge">
-              <GraduationCap size={14} />
-              Free • Self-paced • Expert-led
+              <GraduationCap size={14} aria-hidden="true" />
+              Free Educational Resources
             </div>
-            <h1 className="hero-title">
+            <h1 id="learn-hero-title" className="hero-title">
               Learn Crypto Analysis
             </h1>
             <p className="hero-subtitle">
-              Master cryptocurrency markets with structured courses, tutorials, and expert insights.
+              Master cryptocurrency markets with structured guides, tutorials, and expert insights.
             </p>
             <div className="hero-actions">
-              <Button size="lg" onClick={() => document.getElementById('categories')?.scrollIntoView()}>
-                <GraduationCap size={18} className="mr-2" />
+              <Button size="lg" onClick={() => document.getElementById('categories')?.scrollIntoView({ behavior: 'smooth' })}>
+                <GraduationCap size={18} className="mr-2" aria-hidden="true" />
                 Start Learning
               </Button>
             </div>
@@ -135,10 +160,10 @@ export function Learn() {
         </section>
 
         {/* Categories */}
-        <section id="categories" className="section bg-secondary">
+        <section id="categories" className="section bg-secondary" aria-labelledby="categories-title">
           <div className="container">
             <div className="text-center mb-12">
-              <h2 className="section-title">Learning Paths</h2>
+              <h2 id="categories-title" className="section-title">Learning Paths</h2>
               <p className="section-subtitle max-w-2xl mx-auto">
                 Choose a track that matches your goals. Each path builds progressively from fundamentals to advanced concepts.
               </p>
@@ -153,59 +178,34 @@ export function Learn() {
         </section>
 
         {/* Learning Resources */}
-        <section className="section">
+        <section className="section" aria-labelledby="resources-title">
           <div className="container">
             <div className="text-center mb-12">
-              <h2 className="section-title">Additional Resources</h2>
+              <h2 id="resources-title" className="section-title">Additional Resources</h2>
               <p className="section-subtitle max-w-2xl mx-auto">
-                Tools, references, and community resources to support your learning journey.
+                External tools, references, and community resources to support your learning journey.
               </p>
             </div>
 
             <div className="grid md:grid-cols-3 gap-6">
-              <ResourceCard
-                icon={<BookOpen size={28} />}
-                title="Glossary"
-                description="Comprehensive dictionary of crypto terms, acronyms, and jargon."
-                link="/glossary"
-              />
-              <ResourceCard
-                icon={<Zap size={28} />}
-                title="API Documentation"
-                description="Integrate CryptoAnalyzer data into your own applications."
-                link="/api-docs"
-              />
-              <ResourceCard
-                icon={<Users size={28} />}
-                title="Community Forum"
-                description="Discuss strategies, share insights, and learn from other analysts."
-                link="/community"
-              />
+              {externalResources.map((resource) => (
+                <ResourceCard key={resource.title} {...resource} />
+              ))}
             </div>
           </div>
         </section>
 
         {/* Newsletter */}
-        <section className="section text-center">
+        <section className="section text-center" aria-labelledby="newsletter-title">
           <div className="container">
             <Card className="bg-primary/50 border-primary/50 max-w-2xl mx-auto">
-              <h3 className="text-2xl font-bold mb-4">Stay Updated</h3>
+              <h3 id="newsletter-title" className="text-2xl font-bold mb-4">Stay Updated</h3>
               <p className="text-muted mb-6">
                 Get the latest analysis, market insights, and learning resources delivered to your inbox.
               </p>
-              <form className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto" onSubmit={(e) => e.preventDefault()}>
-                <input
-                  type="email"
-                  placeholder="Enter your email"
-                  className="form-input flex-1"
-                  required
-                />
-                <Button type="submit" size="lg">
-                  Subscribe
-                </Button>
-              </form>
+              <NewsletterForm />
               <p className="text-xs text-muted mt-4">
-                No spam. Unsubscribe anytime. <Link to="/privacy" className="underline">Privacy Policy</Link>
+                No spam. Unsubscribe anytime. <a href="/privacy" className="underline">Privacy Policy</a>
               </p>
             </Card>
           </div>
@@ -217,9 +217,9 @@ export function Learn() {
 
 function FeaturedArticleCard({ article }) {
   return (
-    <Card className="h-full overflow-hidden hover:border-primary/50 transition-colors">
+    <article className="h-full overflow-hidden hover:border-primary/50 transition-colors">
       <div className="aspect-video bg-gradient-to-br from-primary/20 to-secondary relative overflow-hidden">
-        <div className="absolute inset-0 flex items-center justify-center">
+        <div className="absolute inset-0 flex items-center justify-center" aria-hidden="true">
           <Play size={48} className="text-white/80" />
         </div>
         <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-primary/90 to-transparent">
@@ -230,57 +230,152 @@ function FeaturedArticleCard({ article }) {
         <Badge variant="info" className="mb-2">{article.category}</Badge>
         <h4 className="font-semibold text-lg mb-2 line-clamp-2">{article.title}</h4>
         <p className="text-muted text-sm mb-4 line-clamp-3">{article.description}</p>
-        <Button variant="ghost" size="sm" className="w-full justify-start">
-          Read Article <ArrowRight size={14} />
+        <Button variant="ghost" size="sm" className="w-full justify-start" disabled aria-disabled="true">
+          Read Article <ArrowRight size={14} aria-hidden="true" />
         </Button>
       </div>
-    </Card>
+    </article>
   );
 }
 
 function CategoryCard({ category }) {
   const Icon = category.icon;
   return (
-    <Link to={`/learn/${category.id}`} className="group">
-      <Card className="h-full p-6 text-center hover:border-primary/50 transition-colors">
-        <div className={`inline-flex items-center justify-center w-16 h-16 rounded-2xl ${category.color} mb-4`}>
-          <Icon size={28} className="text-white" />
-        </div>
-        <h3 className="text-xl font-semibold mb-2">{category.title}</h3>
-        <p className="text-muted mb-6">{category.description}</p>
-        <div className="space-y-2 text-left">
-          {category.articles.map((article) => (
-            <div key={article.title} className="flex items-center justify-between p-3 bg-tertiary/50 rounded-lg group-hover:bg-tertiary transition-colors">
-              <div>
-                <p className="font-medium text-sm">{article.title}</p>
-                <p className="text-xs text-muted">{article.readTime} • {article.level}</p>
-              </div>
-              <ChevronRight size={16} className="text-muted group-hover:text-primary transition-colors" />
+    <article className="h-full p-6 text-center hover:border-primary/50 transition-colors">
+      <div className={`inline-flex items-center justify-center w-16 h-16 rounded-2xl ${category.color} mb-4`} aria-hidden="true">
+        <Icon size={28} className="text-white" />
+      </div>
+      <h3 className="text-xl font-semibold mb-2">{category.title}</h3>
+      <p className="text-muted mb-6">{category.description}</p>
+      <div className="space-y-2 text-left">
+        {category.articles.map((article) => (
+          <div key={article.title} className="flex items-center justify-between p-3 bg-tertiary/50 rounded-lg">
+            <div>
+              <p className="font-medium text-sm">{article.title}</p>
+              <p className="text-xs text-muted">{article.readTime} • {article.level}</p>
             </div>
-          ))}
-        </div>
-        <Button variant="primary" className="w-full mt-6" size="lg">
-          Start Learning <ArrowRight size={16} />
-        </Button>
-      </Card>
-    </Link>
+            <ChevronRight size={16} className="text-muted" aria-hidden="true" />
+          </div>
+        ))}
+      </div>
+      <Button variant="primary" className="w-full mt-6" size="lg" disabled aria-disabled="true">
+        Start Learning <ArrowRight size={16} aria-hidden="true" />
+      </Button>
+    </article>
   );
 }
 
-function ResourceCard({ icon, title, description, link }) {
+function ResourceCard({ icon, title, description, link, external, comingSoon }) {
   return (
-    <Link to={link} className="group">
-      <Card className="h-full p-6 text-center hover:border-primary/50 transition-colors">
-        <div className="inline-flex items-center justify-center w-14 h-14 rounded-xl bg-primary-bg text-primary mb-4 group-hover:scale-110 transition-transform">
-          {icon}
+    <article className="h-full p-6 text-center hover:border-primary/50 transition-colors">
+      <div className="inline-flex items-center justify-center w-14 h-14 rounded-xl bg-primary-bg text-primary mb-4" aria-hidden="true">
+        {icon}
+      </div>
+      <h3 className="text-lg font-semibold mb-2">{title}</h3>
+      <p className="text-muted mb-4">{description}</p>
+      {comingSoon ? (
+        <Badge variant="warning" className="mb-2">Coming Soon</Badge>
+      ) : null}
+      <Button 
+        variant={external ? "secondary" : "ghost"} 
+        size="sm"
+        disabled={comingSoon}
+        aria-disabled={comingSoon}
+      >
+        {external ? (
+          <a href={link} target="_blank" rel="noopener noreferrer">
+            Explore <ExternalLink size={14} aria-hidden="true" />
+          </a>
+        ) : comingSoon ? (
+          <span>Explore <ArrowRight size={14} aria-hidden="true" /></span>
+        ) : (
+          <Link to={link}>Explore <ArrowRight size={14} aria-hidden="true" /></Link>
+        )}
+      </Button>
+    </article>
+  );
+}
+
+function NewsletterForm() {
+  const [email, setEmail] = useState('');
+  const [status, setStatus] = useState('idle'); // idle, submitting, success, error
+  const [error, setError] = useState('');
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    setError('');
+    
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError('Please enter a valid email address');
+      return;
+    }
+
+    setStatus('submitting');
+    
+    // Simulate API call
+    setTimeout(() => {
+      setStatus('success');
+      setEmail('');
+    }, 1000);
+  };
+
+  if (status === 'success') {
+    return (
+      <div className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
+        <div className="flex items-center justify-center gap-3 p-4 bg-success/10 border border-success/30 rounded-lg text-success">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+            <polyline points="22 4 12 14.01 9 11.01" />
+          </svg>
+          <span className="font-medium">Thanks for subscribing!</span>
         </div>
-        <h3 className="text-lg font-semibold mb-2">{title}</h3>
-        <p className="text-muted mb-4">{description}</p>
-        <Button variant="ghost" size="sm">
-          Explore <ArrowRight size={14} />
+        <Button variant="ghost" size="sm" onClick={() => setStatus('idle')}>
+          Subscribe with another email
         </Button>
-      </Card>
-    </Link>
+      </div>
+    );
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto" noValidate>
+      <div className="relative flex-1">
+        <input
+          type="email"
+          placeholder="Enter your email"
+          className="form-input flex-1"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+          aria-describedby={error ? 'email-error' : undefined}
+          aria-invalid={!!error}
+          disabled={status === 'submitting'}
+        />
+        {error && (
+          <p id="email-error" className="form-error" role="alert">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="8" x2="12" y2="12" />
+              <line x1="12" y1="16" x2="12.01" y2="16" />
+            </svg>
+            {error}
+          </p>
+        )}
+      </div>
+      <Button type="submit" size="lg" disabled={status === 'submitting' || status === 'success'}>
+        {status === 'submitting' ? (
+          <>
+            <svg className="spin" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+              <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+            </svg>
+            <span className="visually-hidden">Subscribing...</span>
+          </>
+        ) : (
+          'Subscribe'
+        )}
+      </Button>
+    </form>
   );
 }
 
