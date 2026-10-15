@@ -1,11 +1,10 @@
 """Checkpoint Persistence Utilities."""
 
-import os
 from pathlib import Path
-from typing import Dict, Any
-import torch
-import torch.nn as nn
+from typing import Any
 
+import torch
+from torch import nn
 
 CHECKPOINT_DIR = Path("D:/CryptoAnalyzer/models/checkpoints")
 
@@ -13,7 +12,7 @@ CHECKPOINT_DIR = Path("D:/CryptoAnalyzer/models/checkpoints")
 def save_checkpoint(
     model: nn.Module,
     checkpoint_path: Path,
-    metadata: Dict[str, Any] = None,
+    metadata: dict[str, Any] | None = None,
 ) -> Path:
     """Save PyTorch model state dict and optional metadata."""
     checkpoint_path = Path(checkpoint_path)
@@ -30,8 +29,8 @@ def save_checkpoint(
 def load_checkpoint(
     model: nn.Module,
     checkpoint_path: Path,
-    device: torch.device = None,
-) -> Dict[str, Any]:
+    device: torch.device | None = None,
+) -> dict[str, Any]:
     """Load PyTorch model state dict from disk."""
     checkpoint_path = Path(checkpoint_path)
     if not checkpoint_path.exists():

@@ -6,7 +6,7 @@ strict temporal partitioning (Train, Validation, Test), and proper
 scaler fitting (Train-only parameters).
 """
 
-from typing import Dict, List, Tuple
+
 import numpy as np
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
@@ -15,8 +15,8 @@ from sklearn.preprocessing import StandardScaler
 def fit_transform_scaler(
     df: pd.DataFrame, 
     train_end_idx: int,
-    exclude_columns: List[str] = ['timestamp']
-) -> Tuple[pd.DataFrame, StandardScaler]:
+    exclude_columns: list[str] | None = None
+) -> tuple[pd.DataFrame, StandardScaler]:
     """
     Fits a StandardScaler purely on the training feature partition, 
     and transforms the entire dataset.
@@ -27,14 +27,16 @@ def fit_transform_scaler(
         Full dataset containing features.
     train_end_idx : int
         The row index strictly defining the end of the training partition.
-    exclude_columns : List[str]
+    exclude_columns : list[str] | None
         Columns to ignore when scaling (e.g., timestamps).
 
     Returns
     -------
-    Tuple[pd.DataFrame, StandardScaler]
+    tuple[pd.DataFrame, StandardScaler]
         Scaled DataFrame (as a copy) and the fitted scaler object.
     """
+    if exclude_columns is None:
+        exclude_columns = ["timestamp"]
     scaled_df = df.copy()
     feature_cols = [c for c in df.columns if c not in exclude_columns]
 
@@ -57,7 +59,7 @@ def extract_3d_sequences(
     horizon: int = 12,
     train_end_target_idx: int = 5980,
     val_end_target_idx: int = 7262
-) -> Dict[str, np.ndarray]:
+) -> dict[str, np.ndarray]:
     """
     Creates chronologically ordered 3D sequences and partitions them based 
     on the underlying feature bounds of their respective targets, preventing
@@ -96,7 +98,7 @@ def extract_3d_sequences(
 
     # Determine dimensions
     N_valid = len(targets_df)
-    K = feat_matrix.shape[1]
+    # K = feat_matrix.shape[1]  # Unused
 
     train_X, train_Y = [], []
     val_X, val_Y = [], []

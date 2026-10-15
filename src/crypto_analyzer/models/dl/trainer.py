@@ -2,15 +2,15 @@
 
 import random
 from pathlib import Path
-from typing import Dict, Any, Tuple, List
+from typing import Any
+
 import numpy as np
 import torch
-import torch.nn as nn
-from torch.utils.data import DataLoader, TensorDataset
+from torch import nn
+from torch.utils.data import DataLoader
 
+from crypto_analyzer.models.dl.checkpoint import load_checkpoint, save_checkpoint
 from crypto_analyzer.models.dl.config import DLConfig
-from crypto_analyzer.models.dl.metrics import compute_dl_metrics
-from crypto_analyzer.models.dl.checkpoint import save_checkpoint, load_checkpoint
 
 
 def set_seed(seed: int = 42) -> None:
@@ -86,7 +86,7 @@ class DLTrainer:
 
         return running_loss / max(1, total_samples)
 
-    def evaluate(self, dataloader: DataLoader) -> Tuple[float, np.ndarray, np.ndarray]:
+    def evaluate(self, dataloader: DataLoader) -> tuple[float, np.ndarray, np.ndarray]:
         """Run evaluation on validation or test set without gradient updates."""
         self.model.eval()
         running_loss = 0.0
@@ -119,7 +119,7 @@ class DLTrainer:
         train_loader: DataLoader,
         val_loader: DataLoader,
         checkpoint_path: Path,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Run complete model training loop with validation, early stopping, and checkpointing."""
         best_val_loss = float("inf")
         patience_counter = 0

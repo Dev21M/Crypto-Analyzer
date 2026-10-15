@@ -11,20 +11,20 @@ from __future__ import annotations
 import json
 import time
 from pathlib import Path
-from typing import Dict, Any
+from typing import Any
 
 import numpy as np
 
 from crypto_analyzer.models.baselines import (
-    NaiveBaseline,
-    RidgeRegressorModel,
-    LogisticModel,
-    RandomForestModel,
-    XGBoostModel,
-    flatten_sequences,
-    compute_regression_metrics,
-    compute_classification_metrics,
     _XGBOOST_AVAILABLE,
+    LogisticModel,
+    NaiveBaseline,
+    RandomForestModel,
+    RidgeRegressorModel,
+    XGBoostModel,
+    compute_classification_metrics,
+    compute_regression_metrics,
+    flatten_sequences,
 )
 
 TENSOR_DIR = Path("D:/CryptoAnalyzer/data/processed/tensors")
@@ -38,7 +38,7 @@ EXPERIMENT_IDS = [
 ]
 
 
-def load_tensors(experiment_id: str) -> Dict[str, np.ndarray]:
+def load_tensors(experiment_id: str) -> dict[str, np.ndarray]:
     """Load the Phase 4 .npz tensor file for a given experiment."""
     path = TENSOR_DIR / f"{experiment_id}_tensors.npz"
     if not path.exists():
@@ -50,10 +50,10 @@ def load_tensors(experiment_id: str) -> Dict[str, np.ndarray]:
 def _evaluate_model(
     model_name: str,
     experiment_id: str,
-    tensors: Dict[str, np.ndarray],
+    tensors: dict[str, np.ndarray],
     model_obj: Any,
     use_naive: bool = False,
-) -> Dict:
+) -> dict:
     """
     Fit model on training data, evaluate on val and test.
 
@@ -72,12 +72,12 @@ def _evaluate_model(
     N_train, W, K = X_train.shape
     flat_dim = W * K
 
-    result: Dict[str, Any] = {
+    result: dict[str, Any] = {
         "model": model_name,
         "experiment": experiment_id,
         "N_train": int(N_train),
-        "N_val": int(len(X_val)),
-        "N_test": int(len(X_test)),
+        "N_val": len(X_val),
+        "N_test": len(X_test),
         "W": int(W),
         "K": int(K),
         "flat_dim": int(flat_dim),
@@ -141,10 +141,10 @@ def _evaluate_model(
 
 
 def run_all_baselines(
-    experiment_ids: list = None,
-    model_names: list = None,
+    experiment_ids: list | None = None,
+    model_names: list | None = None,
     results_dir: Path = RESULTS_DIR,
-) -> Dict:
+) -> dict:
     """
     Run the full baseline experiment matrix.
 
@@ -229,7 +229,7 @@ def run_all_baselines(
     return all_results
 
 
-def _print_result_summary(res: Dict) -> None:
+def _print_result_summary(res: dict) -> None:
     """Print a compact one-line summary of a model result."""
     vm = res.get("val_metrics", {})
     if "regression" in vm:

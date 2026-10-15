@@ -1,7 +1,7 @@
 """Stacked 2-Layer LSTM Architecture."""
 
 import torch
-import torch.nn as nn
+from torch import nn
 
 
 class LSTMModel(nn.Module):
@@ -48,7 +48,7 @@ class LSTMModel(nn.Module):
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         # x: (batch, 60, K)
-        lstm_out, (h_n, c_n) = self.lstm(x)
+        _, (h_n, _) = self.lstm(x)
         # Use final layer's hidden state from the last sequence step
         out = h_n[-1]  # (batch, hidden_size)
         out = self.dropout_layer(out)

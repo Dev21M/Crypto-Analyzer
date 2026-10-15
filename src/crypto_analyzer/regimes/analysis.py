@@ -15,9 +15,7 @@ Leakage safeguard:
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Dict, Optional
 
-import numpy as np
 import pandas as pd
 
 from crypto_analyzer.regimes.classifier import (
@@ -26,7 +24,6 @@ from crypto_analyzer.regimes.classifier import (
     WARMUP_LABEL,
     compute_rolling_regimes,
 )
-
 
 # ---------------------------------------------------------------------------
 # Constants (mirrors Phase 4 partitioning from DECISIONS.md §017)
@@ -48,7 +45,7 @@ def run_regime_analysis(
     window: int = REGIME_WINDOW,
     theta_slope: float = THETA_SLOPE,
     vol_percentile: float = 90.0,
-) -> Dict:
+) -> dict:
     """
     Run the Phase 8 market regime analysis pipeline.
 
@@ -104,8 +101,6 @@ def run_regime_analysis(
     train_end = TRAIN_END_IDX
     val_end = VAL_END_IDX
 
-    df_train = df.iloc[:train_end].copy()
-    df_val = df.iloc[train_end:val_end].copy()
     df_test = df.iloc[val_end:].copy()
 
     n_test = len(df_test)
@@ -210,7 +205,7 @@ def run_regime_analysis(
     return summary
 
 
-def _write_regime_report(summary: Dict, path: Path) -> None:
+def _write_regime_report(summary: dict, path: Path) -> None:
     """Write a markdown descriptive report of the regime analysis."""
     md = summary["test_partition_analysis"]
     meta = summary["methodology"]
@@ -235,15 +230,15 @@ def _write_regime_report(summary: Dict, path: Path) -> None:
         "4. **Sideways** — |S_t| <= theta_slope AND sigma_t <= theta_vol_high",
         "",
         "## Dataset Partitions",
-        f"| Partition | Rows |",
-        f"|---|---|",
+        "| Partition | Rows |",
+        "|---|---|",
         f"| Train | {ds['train_rows']} |",
         f"| Validation | {ds['val_rows']} |",
         f"| Test | {ds['test_rows']} |",
         f"| Total Feature Rows | {ds['total_feature_rows']} |",
         "",
         "## Test Partition Regime Counts & Proportions",
-        f"| Regime | Count | Proportion |",
+        "| Regime | Count | Proportion |",
         "|---|---|---|",
     ]
 

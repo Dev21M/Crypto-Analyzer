@@ -1,7 +1,7 @@
 """Temporal 1D Convolutional Neural Network (1D-CNN)."""
 
 import torch
-import torch.nn as nn
+from torch import nn
 
 
 class CNN1DModel(nn.Module):
@@ -18,7 +18,7 @@ class CNN1DModel(nn.Module):
     def __init__(
         self,
         input_size: int,
-        channels: list = None,
+        channels: list | None = None,
         dropout: float = 0.2,
         task: str = "regression",
     ):
