@@ -284,6 +284,18 @@
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2358a6ff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
 }
 
+.form-select-sm {
+  padding: var(--space-1) var(--space-8) var(--space-1) var(--space-2);
+  font-size: var(--text-xs);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238b949e' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-position: right var(--space-2) center;
+  padding-right: var(--space-7);
+}
+
+.form-select-sm:focus {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2358a6ff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+}
+
 .form-textarea {
   min-height: 100px;
   resize: vertical;
@@ -1020,6 +1032,12 @@
 .badge-outline {
   background-color: transparent;
   border: 1px solid currentColor;
+}
+
+.badge-primary {
+  background-color: var(--color-primary-muted);
+  color: var(--color-primary);
+  border: 1px solid var(--color-primary);
 }
 
 .badge-dot {

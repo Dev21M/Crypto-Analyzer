@@ -13,6 +13,9 @@ export { Table, createColumn } from './Table';
 export { Tabs, TabList, TabPanel } from './Tabs';
 export { Skeleton } from './Skeleton';
 export { Alert } from './Alert';
+export { ErrorBoundary, withErrorBoundary, useErrorHandler, ErrorDisplay } from './ErrorBoundary';
+export { Pagination, SimplePagination, usePagination } from './Pagination';
+export { EmptyState, EmptyStatePreset, EmptyStateVariants } from './EmptyState';
 
 // Re-export types for convenience
 export type { } from './Button';
