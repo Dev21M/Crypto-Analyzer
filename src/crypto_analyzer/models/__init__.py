@@ -2,21 +2,21 @@
 Models package for CryptoAnalyzer.
 """
 from .baselines import (
-    NaiveBaseline,
-    RidgeRegressorModel,
     LogisticModel,
+    NaiveBaseline,
     RandomForestModel,
-    flatten_sequences,
-    compute_regression_metrics,
+    RidgeRegressorModel,
     compute_classification_metrics,
+    compute_regression_metrics,
+    flatten_sequences,
 )
 
 __all__ = [
-    "NaiveBaseline",
-    "RidgeRegressorModel",
     "LogisticModel",
+    "NaiveBaseline",
     "RandomForestModel",
-    "flatten_sequences",
-    "compute_regression_metrics",
+    "RidgeRegressorModel",
     "compute_classification_metrics",
+    "compute_regression_metrics",
+    "flatten_sequences",
 ]

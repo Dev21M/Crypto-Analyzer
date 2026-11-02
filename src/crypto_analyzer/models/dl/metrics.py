@@ -1,15 +1,22 @@
 """Deep Learning Metric Computation Module."""
 
-from typing import Dict, Any
+from typing import Any
+
 import numpy as np
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix
+from sklearn.metrics import (
+    accuracy_score,
+    confusion_matrix,
+    f1_score,
+    precision_score,
+    recall_score,
+)
 
 
 def compute_dl_metrics(
     y_true: np.ndarray,
     y_pred: np.ndarray,
     task: str,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Compute regression or classification evaluation metrics.
 
     Handles zero/near-zero division in MAPE safely matching Phase 5 implementation.

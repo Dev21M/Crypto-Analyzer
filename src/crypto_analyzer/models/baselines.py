@@ -19,19 +19,19 @@ Design Principles
 
 from __future__ import annotations
 
-from typing import Dict, Tuple, Optional
+from typing import ClassVar
 
 import numpy as np
-from sklearn.linear_model import Ridge, LogisticRegression
-from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
+from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
+from sklearn.linear_model import LogisticRegression, Ridge
 from sklearn.metrics import (
     accuracy_score,
-    f1_score,
-    precision_score,
-    recall_score,
     confusion_matrix,
+    f1_score,
     mean_absolute_error,
     mean_squared_error,
+    precision_score,
+    recall_score,
 )
 
 try:
@@ -70,7 +70,7 @@ def flatten_sequences(X: np.ndarray) -> np.ndarray:
     return X.reshape(N, W * K)
 
 
-def compute_regression_metrics(y_true: np.ndarray, y_pred: np.ndarray) -> Dict[str, float]:
+def compute_regression_metrics(y_true: np.ndarray, y_pred: np.ndarray) -> dict[str, float]:
     """
     Compute MAE, RMSE, and a guarded MAPE for regression targets.
 
@@ -101,7 +101,7 @@ def compute_regression_metrics(y_true: np.ndarray, y_pred: np.ndarray) -> Dict[s
     return {"mae": float(mae), "rmse": float(rmse), "mape": mape, "mape_coverage": mape_coverage}
 
 
-def compute_classification_metrics(y_true: np.ndarray, y_pred: np.ndarray) -> Dict:
+def compute_classification_metrics(y_true: np.ndarray, y_pred: np.ndarray) -> dict:
     """
     Compute directional accuracy, precision, recall, macro-F1, and confusion matrix.
 
@@ -149,7 +149,7 @@ class NaiveBaseline:
     def __init__(self):
         self.is_fitted: bool = False
 
-    def fit(self, X: np.ndarray, Y: np.ndarray) -> "NaiveBaseline":
+    def fit(self, X: np.ndarray, Y: np.ndarray) -> NaiveBaseline:
         """No-op fit — naive baseline is deterministic."""
         self.is_fitted = True
         return self
@@ -183,13 +183,13 @@ class RidgeRegressorModel:
     Output: (N,) predicted percentage returns
     """
 
-    HYPERPARAMS = {"alpha": 1.0, "fit_intercept": True}
+    HYPERPARAMS: ClassVar[dict] = {"alpha": 1.0, "fit_intercept": True}
 
     def __init__(self):
         self.model = Ridge(**self.HYPERPARAMS)
         self.is_fitted = False
 
-    def fit(self, X_flat: np.ndarray, Y: np.ndarray) -> "RidgeRegressorModel":
+    def fit(self, X_flat: np.ndarray, Y: np.ndarray) -> RidgeRegressorModel:
         y_reg = Y[:, REG_TARGET_COL]
         self.model.fit(X_flat, y_reg)
         self.is_fitted = True
@@ -215,7 +215,7 @@ class LogisticModel:
     Output: (N,) binary predictions {0, 1}
     """
 
-    HYPERPARAMS = {
+    HYPERPARAMS: ClassVar[dict] = {
         "C": 0.1,
         "max_iter": 1000,
         "solver": "lbfgs",
@@ -226,7 +226,7 @@ class LogisticModel:
         self.model = LogisticRegression(**self.HYPERPARAMS)
         self.is_fitted = False
 
-    def fit(self, X_flat: np.ndarray, Y: np.ndarray) -> "LogisticModel":
+    def fit(self, X_flat: np.ndarray, Y: np.ndarray) -> LogisticModel:
         y_cls = Y[:, CLS_TARGET_COL].astype(int)
         self.model.fit(X_flat, y_cls)
         self.is_fitted = True
@@ -254,7 +254,7 @@ class RandomForestModel:
     Input: flattened (N, W*K)
     """
 
-    HYPERPARAMS = {
+    HYPERPARAMS: ClassVar[dict] = {
         "n_estimators": 100,
         "max_depth": None,
         "min_samples_leaf": 5,
@@ -267,7 +267,7 @@ class RandomForestModel:
         self.cls_model = RandomForestClassifier(**self.HYPERPARAMS)
         self.is_fitted = False
 
-    def fit(self, X_flat: np.ndarray, Y: np.ndarray) -> "RandomForestModel":
+    def fit(self, X_flat: np.ndarray, Y: np.ndarray) -> RandomForestModel:
         y_reg = Y[:, REG_TARGET_COL]
         y_cls = Y[:, CLS_TARGET_COL].astype(int)
         self.reg_model.fit(X_flat, y_reg)
@@ -303,7 +303,7 @@ class XGBoostModel:
     Input: flattened (N, W*K)
     """
 
-    HYPERPARAMS = {
+    HYPERPARAMS: ClassVar[dict] = {
         "n_estimators": 200,
         "max_depth": 4,
         "learning_rate": 0.05,
@@ -324,13 +324,21 @@ class XGBoostModel:
         self.cls_model = xgb.XGBClassifier(eval_metric="logloss", **self.HYPERPARAMS)
         self.is_fitted = False
 
-    def fit(self, X_flat: np.ndarray, Y: np.ndarray) -> "XGBoostModel":
+    def fit(self, X_flat: np.ndarray, Y: np.ndarray) -> XGBoostModel:
         y_reg = Y[:, REG_TARGET_COL]
         y_cls = Y[:, CLS_TARGET_COL].astype(int)
         self.reg_model.fit(X_flat, y_reg)
         self.cls_model.fit(X_flat, y_cls)
         self.is_fitted = True
         return self
+
+    def predict(self, X_flat: np.ndarray) -> np.ndarray:
+        """Predict both regression and classification - returns classification by default."""
+        return self.predict_classification(X_flat)
+
+    def predict_proba(self, X_flat: np.ndarray) -> np.ndarray:
+        """Return class probabilities for binary classification."""
+        return self.cls_model.predict_proba(X_flat)
 
     def predict_regression(self, X_flat: np.ndarray) -> np.ndarray:
         return self.reg_model.predict(X_flat)

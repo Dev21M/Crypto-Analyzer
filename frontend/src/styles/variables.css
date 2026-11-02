@@ -1,0 +1,460 @@
+/* CryptoAnalyzer Design System - CSS Variables */
+/* Based on ui-ux-pro-max fintech design system: Minimalism & Swiss Style */
+/* Colors: Gold trust (#F59E0B) + Purple tech (#8B5CF6) */
+
+:root {
+  /* ---- Brand Colors (Gold Trust + Purple Tech) ---- */
+  --color-primary: #F59E0B;      /* Gold - primary trust signal */
+  --color-primary-hover: #D97706; /* Amber-600 */
+  --color-primary-light: #FEF3C7; /* Amber-50 for light backgrounds */
+  --color-primary-muted: rgba(245, 158, 11, 0.15); /* For badges, backgrounds */
+
+  --color-accent: #8B5CF6;       /* Purple - tech/innovation */
+  --color-accent-hover: #7C3AED;  /* Violet-600 */
+  --color-accent-light: #F5F3FF;  /* Violet-50 for light backgrounds */
+  --color-accent-muted: rgba(139, 92, 246, 0.15); /* For badges, backgrounds */
+
+  /* ---- Semantic Colors ---- */
+  --color-success: #22C55E;       /* Green-500 */
+  --color-success-hover: #16A34A;  /* Green-600 */
+  --color-success-bg: rgba(34, 197, 94, 0.12);
+  --color-success-border: rgba(34, 197, 94, 0.25);
+
+  --color-warning: #F59E0B;       /* Amber-500 (same as primary) */
+  --color-warning-hover: #D97706;  /* Amber-600 */
+  --color-warning-bg: rgba(245, 158, 11, 0.12);
+  --color-warning-border: rgba(245, 158, 11, 0.25);
+
+  --color-danger: #EF4444;        /* Red-500 */
+  --color-danger-hover: #DC2626;   /* Red-600 */
+  --color-danger-bg: rgba(239, 68, 68, 0.12);
+  --color-danger-border: rgba(239, 68, 68, 0.25);
+
+  --color-info: #3B82F6;          /* Blue-500 */
+  --color-info-hover: #2563EB;    /* Blue-600 */
+  --color-info-bg: rgba(59, 130, 246, 0.12);
+  --color-info-border: rgba(59, 130, 246, 0.25);
+
+  /* ---- Neutral Colors (Slate-based for fintech) ---- */
+  --color-neutral-0: #ffffff;
+  --color-neutral-50: #f8fafc;
+  --color-neutral-100: #f1f5f9;
+  --color-neutral-200: #e2e8f0;
+  --color-neutral-300: #cbd5e1;
+  --color-neutral-400: #94a3b8;
+  --color-neutral-500: #64748b;
+  --color-neutral-600: #475569;
+  --color-neutral-700: #334155;
+  --color-neutral-800: #1e293b;
+  --color-neutral-900: #0f172a;
+  --color-neutral-950: #020617;
+
+  /* ---- Chart Colors (Categorical - accessible) ---- */
+  --color-chart-1: #F59E0B;       /* Gold */
+  --color-chart-2: #22C55E;       /* Green */
+  --color-chart-3: #8B5CF6;       /* Purple */
+  --color-chart-4: #EF4444;       /* Red */
+  --color-chart-5: #06B6D4;       /* Cyan */
+  --color-chart-6: #EC4899;       /* Pink */
+  --color-chart-7: #3B82F6;       /* Blue */
+  --color-chart-8: #84CC16;       /* Lime */
+  --color-chart-9: #F97316;       /* Orange */
+  --color-chart-10: #6366F1;      /* Indigo */
+
+  /* ============================================================
+     DARK THEME (Default - Fintech Professional)
+     ============================================================ */
+  --bg-primary: #0F172A;          /* Slate-950 */
+  --bg-secondary: #1E293B;        /* Slate-900 */
+  --bg-tertiary: #334155;         /* Slate-800 */
+  --bg-card: #1E293B;             /* Slate-900 */
+  --bg-hover: #334155;            /* Slate-800 */
+  --bg-active: #475569;           /* Slate-700 */
+  --bg-overlay: rgba(2, 6, 23, 0.8); /* Slate-950 with opacity */
+
+  --border-primary: #334155;      /* Slate-800 */
+  --border-secondary: #475569;    /* Slate-700 */
+  --border-focus: #F59E0B;        /* Gold focus ring */
+  --border-error: #EF4444;
+
+  --text-primary: #F8FAFC;        /* Slate-50 */
+  --text-secondary: #94A3B8;      /* Slate-400 */
+  --text-muted: #64748B;          /* Slate-500 */
+  --text-inverse: #0F172A;        /* Slate-950 */
+  --text-link: #FBBF24;           /* Amber-300 for links */
+
+  --accent-primary: #F59E0B;      /* Gold */
+  --accent-secondary: #8B5CF6;    /* Purple */
+  --accent-success: #22C55E;
+  --accent-warning: #F59E0B;
+  --accent-danger: #EF4444;
+
+  /* Semantic aliases for dark theme */
+  --color-bg-primary: var(--bg-primary);
+  --color-bg-secondary: var(--bg-secondary);
+  --color-bg-tertiary: var(--bg-tertiary);
+  --color-bg-card: var(--bg-card);
+  --color-bg-hover: var(--bg-hover);
+  --color-bg-active: var(--bg-active);
+
+  --color-border-primary: var(--border-primary);
+  --color-border-secondary: var(--border-secondary);
+
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+
+  --color-accent-primary: var(--accent-primary);
+  --color-accent-success: var(--accent-success);
+  --color-accent-warning: var(--accent-warning);
+  --color-accent-danger: var(--accent-danger);
+
+  /* Shadows - Subtle for Swiss Style */
+  --shadow-xs: 0 1px 1px rgba(2, 6, 23, 0.3);
+  --shadow-sm: 0 1px 2px rgba(2, 6, 23, 0.4);
+  --shadow-md: 0 4px 8px -2px rgba(2, 6, 23, 0.4);
+  --shadow-lg: 0 12px 24px -4px rgba(2, 6, 23, 0.5);
+  --shadow-xl: 0 20px 40px -8px rgba(2, 6, 23, 0.5);
+  --shadow-focus: 0 0 0 3px rgba(245, 158, 11, 0.35); /* Gold focus */
+
+  /* Border Radius */
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 9999px;
+
+  /* Spacing Scale (4px base - Swiss Style generous spacing) */
+  --space-0: 0;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+  --space-24: 96px;
+
+  /* Typography - IBM Plex Sans (Financial/Trustworthy) */
+  --font-sans: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'IBM Plex Mono', 'JetBrains Mono', 'Fira Code', 'SF Mono', monospace;
+
+  --text-xs: 0.75rem;    /* 12px */
+  --text-sm: 0.875rem;   /* 14px */
+  --text-base: 1rem;     /* 16px */
+  --text-lg: 1.125rem;   /* 18px */
+  --text-xl: 1.25rem;    /* 20px */
+  --text-2xl: 1.5rem;    /* 24px */
+  --text-3xl: 1.875rem;  /* 30px */
+  --text-4xl: 2.25rem;   /* 36px */
+  --text-5xl: 3rem;      /* 48px */
+
+  --font-light: 300;
+  --font-normal: 400;
+  --font-medium: 500;
+  --font-semibold: 600;
+  --font-bold: 700;
+
+  --leading-tight: 1.25;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.75;
+
+  /* Transitions - Smooth, professional */
+  --transition-fast: 100ms ease;
+  --transition-base: 150ms ease;
+  --transition-slow: 250ms ease;
+
+  /* Z-Index Scale */
+  --z-dropdown: 100;
+  --z-sticky: 200;
+  --z-fixed: 300;
+  --z-modal-backdrop: 400;
+  --z-modal: 500;
+  --z-popover: 600;
+  --z-tooltip: 700;
+  --z-toast: 800;
+
+  /* Layout */
+  --sidebar-width: 260px;
+  --sidebar-collapsed-width: 64px;
+  --header-height: 60px;
+  --container-max: 1280px;
+  --container-padding: 24px;
+}
+
+/* ============================================================
+   LIGHT THEME (Fintech Professional)
+   ============================================================ */
+
+[data-theme="light"] {
+  --bg-primary: #F8FAFC;          /* Slate-50 */
+  --bg-secondary: #F1F5F9;        /* Slate-100 */
+  --bg-tertiary: #E2E8F0;         /* Slate-200 */
+  --bg-card: #FFFFFF;             /* White */
+  --bg-hover: #E2E8F0;            /* Slate-200 */
+  --bg-active: #CBD5E1;           /* Slate-300 */
+  --bg-overlay: rgba(2, 6, 23, 0.4);
+
+  --border-primary: #E2E8F0;      /* Slate-200 */
+  --border-secondary: #CBD5E1;    /* Slate-300 */
+  --border-focus: #D97706;        /* Amber-600 */
+  --border-error: #EF4444;
+
+  --text-primary: #0F172A;        /* Slate-950 */
+  --text-secondary: #475569;      /* Slate-600 */
+  --text-muted: #64748B;          /* Slate-500 */
+  --text-inverse: #F8FAFC;        /* Slate-50 */
+  --text-link: #B45309;           /* Amber-700 */
+
+  --accent-primary: #D97706;      /* Amber-600 */
+  --accent-secondary: #7C3AED;    /* Violet-600 */
+  --accent-success: #16A34A;
+  --accent-warning: #D97706;
+  --accent-danger: #DC2626;
+
+  /* Semantic aliases for light theme */
+  --color-bg-primary: var(--bg-primary);
+  --color-bg-secondary: var(--bg-secondary);
+  --color-bg-tertiary: var(--bg-tertiary);
+  --color-bg-card: var(--bg-card);
+  --color-bg-hover: var(--bg-hover);
+  --color-bg-active: var(--bg-active);
+
+  --color-border-primary: var(--border-primary);
+  --color-border-secondary: var(--border-secondary);
+
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+
+  --color-accent-primary: var(--accent-primary);
+  --color-accent-success: var(--accent-success);
+  --color-accent-warning: var(--accent-warning);
+  --color-accent-danger: var(--accent-danger);
+
+  /* Status colors (light theme) */
+  --color-success: #16A34A;
+  --color-success-bg: rgba(34, 197, 94, 0.1);
+  --color-success-border: rgba(34, 197, 94, 0.2);
+
+  --color-warning: #D97706;
+  --color-warning-bg: rgba(245, 158, 11, 0.1);
+  --color-warning-border: rgba(245, 158, 11, 0.2);
+
+  --color-danger: #DC2626;
+  --color-danger-bg: rgba(239, 68, 68, 0.1);
+  --color-danger-border: rgba(239, 68, 68, 0.2);
+
+  --color-info: #2563EB;
+  --color-info-bg: rgba(59, 130, 246, 0.1);
+  --color-info-border: rgba(59, 130, 246, 0.2);
+
+  /* Shadows - Lighter for light mode */
+  --shadow-xs: 0 1px 1px rgba(2, 6, 23, 0.05);
+  --shadow-sm: 0 1px 2px rgba(2, 6, 23, 0.08);
+  --shadow-md: 0 4px 8px -2px rgba(2, 6, 23, 0.1);
+  --shadow-lg: 0 12px 24px -4px rgba(2, 6, 23, 0.12);
+  --shadow-xl: 0 20px 40px -8px rgba(2, 6, 23, 0.15);
+  --shadow-focus: 0 0 0 3px rgba(217, 119, 6, 0.35); /* Amber focus */
+}
+
+/* ============================================================
+   SYSTEM THEME DETECTION
+   ============================================================ */
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg-primary: #F8FAFC;
+    --bg-secondary: #F1F5F9;
+    --bg-tertiary: #E2E8F0;
+    --bg-card: #FFFFFF;
+    --bg-hover: #E2E8F0;
+    --bg-active: #CBD5E1;
+    --bg-overlay: rgba(2, 6, 23, 0.4);
+
+    --border-primary: #E2E8F0;
+    --border-secondary: #CBD5E1;
+    --border-focus: #D97706;
+    --border-error: #EF4444;
+
+    --text-primary: #0F172A;
+    --text-secondary: #475569;
+    --text-muted: #64748B;
+    --text-inverse: #F8FAFC;
+    --text-link: #B45309;
+
+    --accent-primary: #D97706;
+    --accent-secondary: #7C3AED;
+    --accent-success: #16A34A;
+    --accent-warning: #D97706;
+    --accent-danger: #DC2626;
+
+    --color-bg-primary: var(--bg-primary);
+    --color-bg-secondary: var(--bg-secondary);
+    --color-bg-tertiary: var(--bg-tertiary);
+    --color-bg-card: var(--bg-card);
+    --color-bg-hover: var(--bg-hover);
+    --color-bg-active: var(--bg-active);
+
+    --color-border-primary: var(--border-primary);
+    --color-border-secondary: var(--border-secondary);
+
+    --color-text-primary: var(--text-primary);
+    --color-text-secondary: var(--text-secondary);
+    --color-text-muted: var(--text-muted);
+
+    --color-accent-primary: var(--accent-primary);
+    --color-accent-success: var(--accent-success);
+    --color-accent-warning: var(--accent-warning);
+    --color-accent-danger: var(--accent-danger);
+
+    --color-success: #16A34A;
+    --color-success-bg: rgba(34, 197, 94, 0.1);
+    --color-success-border: rgba(34, 197, 94, 0.2);
+
+    --color-warning: #D97706;
+    --color-warning-bg: rgba(245, 158, 11, 0.1);
+    --color-warning-border: rgba(245, 158, 11, 0.2);
+
+    --color-danger: #DC2626;
+    --color-danger-bg: rgba(239, 68, 68, 0.1);
+    --color-danger-border: rgba(239, 68, 68, 0.2);
+
+    --color-info: #2563EB;
+    --color-info-bg: rgba(59, 130, 246, 0.1);
+    --color-info-border: rgba(59, 130, 246, 0.2);
+
+    --shadow-xs: 0 1px 1px rgba(2, 6, 23, 0.05);
+    --shadow-sm: 0 1px 2px rgba(2, 6, 23, 0.08);
+    --shadow-md: 0 4px 8px -2px rgba(2, 6, 23, 0.1);
+    --shadow-lg: 0 12px 24px -4px rgba(2, 6, 23, 0.12);
+    --shadow-xl: 0 20px 40px -8px rgba(2, 6, 23, 0.15);
+    --shadow-focus: 0 0 0 3px rgba(217, 119, 6, 0.35);
+  }
+}
+
+/* ============================================================
+   REDUCED MOTION
+   ============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --transition-fast: 0ms;
+    --transition-base: 0ms;
+    --transition-slow: 0ms;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ============================================================
+   HIGH CONTRAST MODE
+   ============================================================ */
+
+@media (prefers-contrast: high) {
+  :root {
+    --border-primary: currentColor;
+    --border-secondary: currentColor;
+  }
+
+  [data-theme="dark"] {
+    --bg-primary: #000000;
+    --bg-secondary: #000000;
+    --bg-tertiary: #1a1a1a;
+    --text-primary: #ffffff;
+    --text-secondary: #cccccc;
+  }
+
+  [data-theme="light"] {
+    --bg-primary: #ffffff;
+    --bg-secondary: #ffffff;
+    --bg-tertiary: #f0f0f0;
+    --text-primary: #000000;
+    --text-secondary: #333333;
+  }
+}
+
+/* ============================================================
+   FONT IMPORTS (IBM Plex Sans + IBM Plex Mono)
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap');
+
+/* ============================================================
+   GLOBAL BASE STYLES
+   ============================================================ */
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+  color: var(--text-primary);
+  background-color: var(--bg-primary);
+  transition: background-color var(--transition-base), color var(--transition-base);
+}
+
+/* Focus visible for keyboard navigation */
+:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
+}
+
+/* Selection colors */
+::selection {
+  background-color: var(--color-primary-muted);
+  color: var(--text-primary);
+}
+
+[data-theme="light"] ::selection {
+  background-color: var(--color-primary-light);
+  color: var(--text-primary);
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-secondary);
+  border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* Reduced motion - disable scrollbar animations */
+@media (prefers-reduced-motion: reduce) {
+  ::-webkit-scrollbar-thumb {
+    transition: none;
+  }
+}

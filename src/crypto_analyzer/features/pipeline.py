@@ -18,7 +18,6 @@ operates on returns (which themselves have a 1-row warm-up) rather than raw pric
 MAX_WARM_UP_ROWS = 96 (conservative maximum across all features).
 """
 
-from typing import Dict, List
 
 import numpy as np
 import pandas as pd
@@ -36,13 +35,12 @@ from crypto_analyzer.features.indicators import (
     compute_sma,
 )
 
-
 # ──────────────────────────────────────────────────────────────────────
 # Experiment → Feature Column Definitions
 # Exactly matches docs/experiments.md Section 1.1
 # ──────────────────────────────────────────────────────────────────────
 
-EXPERIMENT_FEATURES: Dict[str, List[str]] = {
+EXPERIMENT_FEATURES: dict[str, list[str]] = {
     "EXP_A_PRICE": [
         "open",
         "high",
@@ -106,7 +104,7 @@ EXPERIMENT_FEATURES: Dict[str, List[str]] = {
 }
 
 # Expected feature counts per experiment (used for validation)
-EXPECTED_FEATURE_COUNTS: Dict[str, int] = {
+EXPECTED_FEATURE_COUNTS: dict[str, int] = {
     "EXP_A_PRICE": 4,
     "EXP_B_PRICE_VOL": 5,
     "EXP_C_TECH_IND": 19,
@@ -118,7 +116,7 @@ EXPECTED_FEATURE_COUNTS: Dict[str, int] = {
 MAX_WARM_UP_ROWS = 96
 
 
-def get_feature_columns(experiment_id: str) -> List[str]:
+def get_feature_columns(experiment_id: str) -> list[str]:
     """
     Return the exact ordered list of feature column names for a given experiment.
 
@@ -271,7 +269,7 @@ def build_features(df: pd.DataFrame) -> pd.DataFrame:
     return result
 
 
-def get_feature_summary(df: pd.DataFrame) -> Dict:
+def get_feature_summary(df: pd.DataFrame) -> dict:
     """
     Generate a summary of computed features including NaN counts and warm-up info.
 

@@ -1,7 +1,7 @@
 """Stacked 2-Layer GRU Architecture."""
 
 import torch
-import torch.nn as nn
+from torch import nn
 
 
 class GRUModel(nn.Module):
@@ -48,7 +48,7 @@ class GRUModel(nn.Module):
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         # x: (batch, 60, K)
-        gru_out, h_n = self.gru(x)
+        _, h_n = self.gru(x)
         # Use final layer's hidden state
         out = h_n[-1]  # (batch, hidden_size)
         out = self.dropout_layer(out)

@@ -2,12 +2,12 @@
 Dataset metadata and validation report data structures.
 """
 
-from dataclasses import dataclass, field, asdict
-from datetime import datetime, timezone
 import hashlib
 import json
+from dataclasses import asdict, dataclass, field
+from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 
 @dataclass
@@ -27,7 +27,7 @@ class DatasetMetadata:
         if not self.acquisition_timestamp:
             self.acquisition_timestamp = datetime.now(timezone.utc).isoformat()
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
     def save_json(self, filepath: Path) -> Path:
@@ -38,7 +38,7 @@ class DatasetMetadata:
         return filepath
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "DatasetMetadata":
+    def from_dict(cls, data: dict[str, Any]) -> "DatasetMetadata":
         return cls(**data)
 
     @classmethod
@@ -53,18 +53,18 @@ class ValidationReport:
     """Stores results of comprehensive data quality validation."""
     passed: bool = False
     total_rows: int = 0
-    start_timestamp: Optional[str] = None
-    end_timestamp: Optional[str] = None
+    start_timestamp: str | None = None
+    end_timestamp: str | None = None
     missing_candles: int = 0
     duplicate_rows: int = 0
     invalid_ohlc_rows: int = 0
     negative_volume_rows: int = 0
     nan_inf_rows: int = 0
-    gaps: List[Dict[str, Any]] = field(default_factory=list)
-    checks: Dict[str, bool] = field(default_factory=dict)
-    errors: List[str] = field(default_factory=list)
+    gaps: list[dict[str, Any]] = field(default_factory=list)
+    checks: dict[str, bool] = field(default_factory=dict)
+    errors: list[str] = field(default_factory=list)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
     def save_json(self, filepath: Path) -> Path:

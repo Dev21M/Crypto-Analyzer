@@ -7,13 +7,15 @@ train-only scaler transformations, and 3D sequence building for all
 experiment layouts (EXP_A, B, C, D).
 """
 
-from typing import Dict, Tuple
 import numpy as np
 import pandas as pd
 
 from crypto_analyzer.features.pipeline import get_feature_columns
+from crypto_analyzer.preprocessing.sequences import (
+    extract_3d_sequences,
+    fit_transform_scaler,
+)
 from crypto_analyzer.preprocessing.targets import compute_targets
-from crypto_analyzer.preprocessing.sequences import fit_transform_scaler, extract_3d_sequences
 
 
 def build_experiment_tensors(
@@ -21,7 +23,7 @@ def build_experiment_tensors(
     experiment_id: str,
     window_size: int = 60,
     horizon: int = 12
-) -> Dict[str, np.ndarray]:
+) -> dict[str, np.ndarray]:
     """
     Build 3D sequence tensors for a specific experiment layout.
 

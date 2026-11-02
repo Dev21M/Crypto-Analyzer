@@ -1,0 +1,109 @@
+version: '3.8'
+
+services:
+  # Redis for caching and pub/sub
+  redis:
+    image: redis:7-alpine
+    container_name: cryptoanalyzer-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - cryptoanalyzer-network
+
+  # Backend API
+  backend:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.backend
+    container_name: cryptoanalyzer-backend
+    ports:
+      - "8000:8000"
+    environment:
+      - APP_NAME=CryptoAnalyzer API
+      - APP_VERSION=1.0.0
+      - DEBUG=true
+      - ENVIRONMENT=development
+      - REDIS_URL=redis://redis:6379/0
+      - MODEL_CHECKPOINT_DIR=/app/models/checkpoints
+      - SEQUENCE_TENSOR_DIR=/app/data/processed/tensors
+      - EXPERIMENT_RESULTS_DIR=/app/experiments/results
+      - RAW_DATA_PATH=/app/data/raw/btcusdt_5m_raw.csv
+      - FEATURES_DATA_PATH=/app/data/processed/btcusdt_5m_features.csv
+      - BINANCE_BASE_URL=https://api.binance.com/api/v3
+      - BINANCE_SYMBOL=BTCUSDT
+      - BINANCE_INTERVAL=5m
+      - PREDICTION_HORIZON=12
+      - LOOKBACK_WINDOW=60
+      - DEFAULT_EXPERIMENT=EXP_D_FULL
+      - DEFAULT_MODEL=xgboost
+      - SECRET_KEY=${SECRET_KEY:-dev-secret-change-in-production}
+      - LOG_LEVEL=INFO
+    volumes:
+      - ../data:/app/data
+      - ../models:/app/models
+      - ../experiments:/app/experiments
+      - ../reports:/app/reports
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+    networks:
+      - cryptoanalyzer-network
+
+  # Frontend
+  frontend:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.frontend
+    container_name: cryptoanalyzer-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_API_URL=http://localhost:8000
+      - REACT_APP_WS_URL=ws://localhost:8000
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - cryptoanalyzer-network
+
+  # Optional: Data downloader (run once)
+  data-downloader:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.backend
+    container_name: cryptoanalyzer-data-downloader
+    command: python scripts/download_data.py
+    environment:
+      - APP_NAME=CryptoAnalyzer Data Downloader
+      - RAW_DATA_PATH=/app/data/raw/btcusdt_5m_raw.csv
+    volumes:
+      - ../data:/app/data
+    depends_on:
+      - redis
+    profiles:
+      - data
+    networks:
+      - cryptoanalyzer-network
+
+volumes:
+  redis_data:
+
+networks:
+  cryptoanalyzer-network:
+    driver: bridge

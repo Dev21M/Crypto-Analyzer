@@ -3,10 +3,9 @@ Binance historical 5-minute candle data downloader module.
 Fetches BTC/USDT OHLCV candles from Binance Spot API and persists raw data.
 """
 
+import time
 from datetime import datetime, timezone
 from pathlib import Path
-import time
-from typing import Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -26,7 +25,7 @@ class BinanceDownloader:
     DEFAULT_INTERVAL = "5m"
     INTERVAL_MS = 300_000  # 5 minutes in milliseconds
 
-    def __init__(self, output_dir: Optional[Union[str, Path]] = None, timeout: int = 10):
+    def __init__(self, output_dir: str | Path | None = None, timeout: int = 10):
         self.output_dir = Path(output_dir) if output_dir else Path("D:/CryptoAnalyzer/data/raw")
         self.output_dir.mkdir(parents=True, exist_ok=True)
         self.timeout = timeout
@@ -35,10 +34,10 @@ class BinanceDownloader:
         self,
         symbol: str = DEFAULT_SYMBOL,
         interval: str = DEFAULT_INTERVAL,
-        start_time_ms: Optional[int] = None,
-        end_time_ms: Optional[int] = None,
+        start_time_ms: int | None = None,
+        end_time_ms: int | None = None,
         limit: int = 1000,
-    ) -> List[List]:
+    ) -> list[list]:
         """Fetches a single chunk of klines (max 1000 candles) from Binance API."""
         params = {
             "symbol": symbol.upper().replace("/", ""),
@@ -58,16 +57,16 @@ class BinanceDownloader:
         self,
         symbol: str = DEFAULT_SYMBOL,
         interval: str = DEFAULT_INTERVAL,
-        start_time_ms: Optional[int] = None,
-        end_time_ms: Optional[int] = None,
-        max_candles: Optional[int] = None,
+        start_time_ms: int | None = None,
+        end_time_ms: int | None = None,
+        max_candles: int | None = None,
         sleep_interval: float = 0.1,
     ) -> pd.DataFrame:
         """
         Fetches historical klines paginating through start_time to end_time.
         Returns DataFrame with columns: ['timestamp', 'open', 'high', 'low', 'close', 'volume']
         """
-        all_klines: List[List] = []
+        all_klines: list[list] = []
         current_start = start_time_ms
 
         while True:
@@ -104,7 +103,7 @@ class BinanceDownloader:
         return df
 
     @staticmethod
-    def _parse_klines_to_dataframe(klines: List[List]) -> pd.DataFrame:
+    def _parse_klines_to_dataframe(klines: list[list]) -> pd.DataFrame:
         """Parses Binance raw klines array into standard pandas DataFrame."""
         if not klines:
             return pd.DataFrame(columns=["timestamp", "open", "high", "low", "close", "volume"])
@@ -135,7 +134,7 @@ class BinanceDownloader:
         filename: str = "btcusdt_5m_raw.csv",
         symbol: str = DEFAULT_SYMBOL,
         interval: str = DEFAULT_INTERVAL,
-    ) -> Tuple[Path, DatasetMetadata]:
+    ) -> tuple[Path, DatasetMetadata]:
         """
         Saves DataFrame as raw CSV and generates associated DatasetMetadata.
         """
